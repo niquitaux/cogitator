@@ -1,0 +1,283 @@
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/cinzel/index.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/share-tech-mono/index.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/rajdhani/index.css">
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+@keyframes blk{0%,49%{opacity:1}50%,100%{opacity:0}}
+@keyframes flk{0%,87%,92%,96%,100%{opacity:1}88%,93%{opacity:.75}90%{opacity:.5}}
+@keyframes glow-a{0%,100%{text-shadow:0 0 6px #c8820a}50%{text-shadow:0 0 18px #ffaa00,0 0 30px #c8820a}}
+@keyframes glow-b{0%,100%{text-shadow:0 0 6px #0088cc}50%{text-shadow:0 0 18px #00ccff,0 0 30px #0066aa}}
+@keyframes glow-r{0%,100%{text-shadow:0 0 6px #aa0000}50%{text-shadow:0 0 18px #ff2200,0 0 30px #880000}}
+@keyframes glow-g{0%,100%{text-shadow:0 0 6px #006600}50%{text-shadow:0 0 18px #00ff44,0 0 30px #004400}}
+@keyframes pulse-b{0%,100%{box-shadow:0 0 4px rgba(0,180,255,.2)}50%{box-shadow:0 0 12px rgba(0,220,255,.5)}}
+@keyframes scan-move{from{background-position:0 0}to{background-position:0 200px}}
+@keyframes bar-fill{from{width:0}to{width:var(--w)}}
+@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+@keyframes hex-rotate{from{transform:rotate(0) scale(1)}to{transform:rotate(360deg) scale(1)}}
+@keyframes appear{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+.screen{
+  position:relative;overflow:hidden;
+  border-radius:2px;padding:14px;
+  font-family:'Share Tech Mono','Courier New',monospace;
+  animation:flk 10s infinite;
+}
+.scanlines{
+  position:absolute;inset:0;pointer-events:none;z-index:10;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.15) 2px,rgba(0,0,0,.15) 4px);
+}
+.vignette{
+  position:absolute;inset:0;pointer-events:none;z-index:9;
+  background:radial-gradient(ellipse at 50% 50%,transparent 40%,rgba(0,0,0,.6) 100%);
+}
+.label-chip{
+  display:inline-block;padding:2px 8px;font-size:9px;letter-spacing:2px;
+  font-family:'Cinzel',serif;margin-bottom:16px;border:1px solid;
+}
+.faction-title{font-size:11px;letter-spacing:4px;font-family:'Cinzel',serif;font-weight:900;text-transform:uppercase;margin-bottom:3px}
+.faction-sub{font-size:8px;letter-spacing:2px;font-family:'Cinzel',serif;margin-bottom:14px;opacity:.5}
+.stat-name{font-family:'Cinzel',serif;font-size:7px;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;opacity:.6}
+.bar-track{height:4px;margin-bottom:10px;position:relative;overflow:hidden}
+.bar-fill{height:100%;animation:bar-fill .8s ease-out forwards}
+.data-val{font-size:18px;font-weight:700;line-height:1}
+.data-lbl{font-size:7px;letter-spacing:2px;opacity:.5;margin-top:2px;font-family:'Cinzel',serif}
+.divdr{height:1px;margin:10px 0;opacity:.2}
+.status-row{display:flex;align-items:center;gap:5px;font-size:8px;letter-spacing:1px;margin-bottom:4px;opacity:.7}
+.sdot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.blink{animation:blk 1s step-end infinite}
+.corner-tl,.corner-tr,.corner-bl,.corner-br{position:absolute;width:8px;height:8px}
+.corner-tl{top:0;left:0;border-top:2px solid;border-left:2px solid}
+.corner-tr{top:0;right:0;border-top:2px solid;border-right:2px solid}
+.corner-bl{bottom:0;left:0;border-bottom:2px solid;border-left:2px solid}
+.corner-br{bottom:0;right:0;border-bottom:2px solid;border-right:2px solid}
+</style>
+
+<div style="padding:10px 6px;background:transparent;animation:appear .5s ease-out">
+
+<!-- HEADER LABEL -->
+<div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:4px;color:#444;text-align:center;margin-bottom:12px;text-transform:uppercase">◈ INTERFACE VARIANTS — CHOOSE YOUR ALLEGIANCE ◈</div>
+
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+
+<!-- ══════════════════════════════════════════
+     PANEL 1: ADEPTUS MECHANICUS
+     Amber CRT · Gothic · Cogitator
+════════════════════════════════════════════ -->
+<div>
+  <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:3px;color:#6b3e10;text-align:center;margin-bottom:6px;text-transform:uppercase">ADEPTUS MECHANICUS</div>
+  <div class="screen" style="background:#060504;border:1px solid #6b3e10;min-height:340px">
+    <div class="scanlines"></div><div class="vignette"></div>
+    <div class="corner-tl" style="border-color:#c8820a"></div>
+    <div class="corner-tr" style="border-color:#c8820a"></div>
+    <div class="corner-bl" style="border-color:#c8820a"></div>
+    <div class="corner-br" style="border-color:#c8820a"></div>
+
+    <div style="position:relative;z-index:1">
+      <div style="text-align:center;font-size:20px;color:#3a1e04;margin-bottom:6px">⚙</div>
+      <div class="faction-title" style="color:#ffaa00;animation:glow-a 3s ease-in-out infinite;text-align:center">COGITATOR VII</div>
+      <div class="faction-sub" style="color:#c8820a;text-align:center">SANCTUM MECHANICUS</div>
+
+      <div style="background:#0e0a05;border:1px solid #3a2408;padding:8px;margin-bottom:10px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;text-align:center">
+          <div><div class="data-val" style="color:#ffaa00;animation:glow-a 3.2s ease-in-out infinite">73<span style="font-size:10px">%</span></div><div class="data-lbl" style="color:#7a5525">COGITATOR</div></div>
+          <div><div class="data-val" style="color:#c8820a;animation:glow-a 2.8s ease-in-out infinite">91<span style="font-size:10px">%</span></div><div class="data-lbl" style="color:#7a5525">ANIMA</div></div>
+        </div>
+      </div>
+
+      <div class="stat-name" style="color:#7a5525">PLASMA CORE TEMP</div>
+      <div class="bar-track" style="background:#1a0e04"><div class="bar-fill" style="--w:82%;width:82%;background:linear-gradient(90deg,#6a4008,#cc2200);box-shadow:0 0 6px #cc2200"></div></div>
+      <div class="stat-name" style="color:#7a5525">VOID SHIELD INTEGRITY</div>
+      <div class="bar-track" style="background:#1a0e04"><div class="bar-fill" style="--w:94%;width:94%;background:linear-gradient(90deg,#6a4008,#ffaa00);box-shadow:0 0 4px #c8820a"></div></div>
+      <div class="stat-name" style="color:#7a5525">GELLAR FIELD</div>
+      <div class="bar-track" style="background:#1a0e04"><div class="bar-fill" style="--w:99%;width:99%;background:linear-gradient(90deg,#1a6b1a,#22cc44);box-shadow:0 0 4px #22cc44"></div></div>
+
+      <div class="divdr" style="background:#c8820a"></div>
+
+      <div class="status-row" style="color:#c8820a"><div class="sdot blink" style="background:#22cc44;box-shadow:0 0 4px #22cc44"></div>MACHINE SPIRIT: COMPLIANT</div>
+      <div class="status-row" style="color:#c8820a"><div class="sdot blink" style="background:#ffaa00;animation-duration:1.6s;box-shadow:0 0 4px #ffaa00"></div>WARP PROXIMITY: NOMINAL</div>
+      <div class="status-row" style="color:#c8820a"><div class="sdot blink" style="background:#cc2200;animation-duration:.9s;box-shadow:0 0 4px #cc2200"></div>HERETICUS SCAN: ACTIVE</div>
+
+      <div style="margin-top:10px;border-top:1px solid #2a1604;padding-top:6px;font-size:7px;color:#3a2408;font-family:'Cinzel',serif;letter-spacing:2px;text-align:center">LAUS DEO MACHINAE <span class="blink">█</span></div>
+    </div>
+  </div>
+  <div style="margin-top:6px;font-size:8px;color:#555;font-family:'Cinzel',serif;letter-spacing:1px;text-align:center;line-height:1.6">Amber на чёрном<br>Готический serif<br>Механические рамки</div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PANEL 2: SPACE MARINE HUD
+     Cyan/Blue · Geometric · Tactical FUI
+     Ala Secret Level reference
+════════════════════════════════════════════ -->
+<div>
+  <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:3px;color:#003355;text-align:center;margin-bottom:6px;text-transform:uppercase">SPACE MARINES HUD</div>
+  <div class="screen" style="background:#010810;border:1px solid #004488;min-height:340px">
+    <div class="scanlines"></div><div class="vignette"></div>
+    <div class="corner-tl" style="border-color:#00aaff"></div>
+    <div class="corner-tr" style="border-color:#00aaff"></div>
+    <div class="corner-bl" style="border-color:#00aaff"></div>
+    <div class="corner-br" style="border-color:#00aaff"></div>
+
+    <div style="position:relative;z-index:1;font-family:'Rajdhani','Share Tech Mono',monospace">
+
+      <!-- Targeting reticle -->
+      <div style="position:relative;width:70px;height:70px;margin:0 auto 10px">
+        <svg viewBox="0 0 70 70" width="70" height="70">
+          <!-- outer ring -->
+          <circle cx="35" cy="35" r="32" fill="none" stroke="#003366" stroke-width="1"/>
+          <circle cx="35" cy="35" r="32" fill="none" stroke="#00aaff" stroke-width="1"
+            stroke-dasharray="30 10 30 10 30 10 30 10"
+            style="filter:drop-shadow(0 0 4px #00aaff)"/>
+          <!-- inner ring -->
+          <circle cx="35" cy="35" r="20" fill="none" stroke="#004477" stroke-width="1" stroke-dasharray="5 5"/>
+          <!-- crosshair -->
+          <line x1="35" y1="10" x2="35" y2="24" stroke="#00ccff" stroke-width="1" style="filter:drop-shadow(0 0 2px #00ccff)"/>
+          <line x1="35" y1="46" x2="35" y2="60" stroke="#00ccff" stroke-width="1" style="filter:drop-shadow(0 0 2px #00ccff)"/>
+          <line x1="10" y1="35" x2="24" y2="35" stroke="#00ccff" stroke-width="1" style="filter:drop-shadow(0 0 2px #00ccff)"/>
+          <line x1="46" y1="35" x2="60" y2="35" stroke="#00ccff" stroke-width="1" style="filter:drop-shadow(0 0 2px #00ccff)"/>
+          <!-- center -->
+          <circle cx="35" cy="35" r="3" fill="#00ccff" style="filter:drop-shadow(0 0 4px #00ccff)"/>
+          <!-- corner brackets -->
+          <path d="M18 18 L18 26 M18 18 L26 18" fill="none" stroke="#0088cc" stroke-width="1.5"/>
+          <path d="M52 18 L52 26 M52 18 L44 18" fill="none" stroke="#0088cc" stroke-width="1.5"/>
+          <path d="M18 52 L18 44 M18 52 L26 52" fill="none" stroke="#0088cc" stroke-width="1.5"/>
+          <path d="M52 52 L52 44 M52 52 L44 52" fill="none" stroke="#0088cc" stroke-width="1.5"/>
+          <!-- angle ticks -->
+          <text x="35" y="7" text-anchor="middle" fill="#004488" font-size="5" font-family="Share Tech Mono">000</text>
+          <text x="63" y="37" text-anchor="start" fill="#004488" font-size="5" font-family="Share Tech Mono">090</text>
+        </svg>
+      </div>
+
+      <div class="faction-title" style="color:#00ccff;animation:glow-b 3s ease-in-out infinite;text-align:center;letter-spacing:5px">SPACE MARINE</div>
+      <div class="faction-sub" style="color:#0088cc;text-align:center">TACTICAL OVERLAY — LIVE FEED</div>
+
+      <!-- Hex stat panels -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-bottom:10px">
+        <div style="background:#020d1a;border:1px solid #003366;padding:5px;text-align:center">
+          <div style="font-size:14px;font-weight:700;color:#00ccff;animation:glow-b 2.5s ease-in-out infinite">98<span style="font-size:9px">%</span></div>
+          <div style="font-size:6px;letter-spacing:1px;color:#004477;font-family:'Cinzel',serif">ARMOR</div>
+        </div>
+        <div style="background:#020d1a;border:1px solid #003366;padding:5px;text-align:center">
+          <div style="font-size:14px;font-weight:700;color:#00aaff;animation:glow-b 3.1s ease-in-out infinite">67<span style="font-size:9px">%</span></div>
+          <div style="font-size:6px;letter-spacing:1px;color:#004477;font-family:'Cinzel',serif">AMMO</div>
+        </div>
+        <div style="background:#020d1a;border:1px solid #003366;padding:5px;text-align:center">
+          <div style="font-size:14px;font-weight:700;color:#00ff88;animation:glow-g 2.8s ease-in-out infinite">100<span style="font-size:8px">%</span></div>
+          <div style="font-size:6px;letter-spacing:1px;color:#004477;font-family:'Cinzel',serif">VITA</div>
+        </div>
+      </div>
+
+      <div class="stat-name" style="color:#004477">THREAT VECTOR — ALPHA</div>
+      <div class="bar-track" style="background:#020d1a"><div class="bar-fill" style="--w:43%;width:43%;background:linear-gradient(90deg,#003366,#ff4400);box-shadow:0 0 6px rgba(255,68,0,.5)"></div></div>
+      <div class="stat-name" style="color:#004477">SQUAD INTEGRITY</div>
+      <div class="bar-track" style="background:#020d1a"><div class="bar-fill" style="--w:75%;width:75%;background:linear-gradient(90deg,#003366,#00ccff);box-shadow:0 0 4px rgba(0,200,255,.4)"></div></div>
+
+      <div class="divdr" style="background:#004488"></div>
+      <div class="status-row" style="color:#0088cc"><div class="sdot blink" style="background:#00ff88;box-shadow:0 0 4px #00ff88"></div>BROTHER OCTAVIAN: ACTIVE</div>
+      <div class="status-row" style="color:#0088cc"><div class="sdot blink" style="background:#00aaff;animation-duration:2s;box-shadow:0 0 4px #00aaff"></div>CHAPTER: ULTRAMARINES</div>
+      <div style="margin-top:8px;border-top:1px solid #002244;padding-top:6px;font-size:7px;color:#002244;font-family:'Cinzel',serif;letter-spacing:2px;text-align:center">FOR THE EMPEROR <span class="blink" style="color:#0088cc">█</span></div>
+    </div>
+  </div>
+  <div style="margin-top:6px;font-size:8px;color:#555;font-family:'Cinzel',serif;letter-spacing:1px;text-align:center;line-height:1.6">Синий на тёмно-синем<br>Геометрические формы<br>Прицельные рамки</div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PANEL 3: INQUISITION
+     Deep Red · Ornate · Ominous
+════════════════════════════════════════════ -->
+<div>
+  <div style="font-family:'Cinzel',serif;font-size:8px;letter-spacing:3px;color:#4a0010;text-align:center;margin-bottom:6px;text-transform:uppercase">ORDO HERETICUS</div>
+  <div class="screen" style="background:#040002;border:1px solid #4a0010;min-height:340px">
+    <div class="scanlines"></div><div class="vignette"></div>
+    <div class="corner-tl" style="border-color:#880020"></div>
+    <div class="corner-tr" style="border-color:#880020"></div>
+    <div class="corner-bl" style="border-color:#880020"></div>
+    <div class="corner-br" style="border-color:#880020"></div>
+
+    <div style="position:relative;z-index:1">
+      <!-- Inquisition "I" symbol -->
+      <div style="text-align:center;margin-bottom:8px">
+        <svg viewBox="0 0 50 50" width="40" height="40" style="display:inline-block">
+          <line x1="25" y1="4" x2="25" y2="46" stroke="#660010" stroke-width="3"/>
+          <line x1="12" y1="4" x2="38" y2="4" stroke="#660010" stroke-width="2"/>
+          <line x1="12" y1="46" x2="38" y2="46" stroke="#660010" stroke-width="2"/>
+          <line x1="16" y1="23" x2="34" y2="23" stroke="#880020" stroke-width="1.5"/>
+          <line x1="16" y1="27" x2="34" y2="27" stroke="#880020" stroke-width="1.5"/>
+          <circle cx="25" cy="25" r="4" fill="none" stroke="#aa0020" stroke-width="1" style="filter:drop-shadow(0 0 3px #aa0020)"/>
+        </svg>
+      </div>
+
+      <div class="faction-title" style="color:#cc1122;animation:glow-r 3s ease-in-out infinite;text-align:center">INQUISITOR MALAX</div>
+      <div class="faction-sub" style="color:#880020;text-align:center">ORDO HERETICUS — PURGE PROTOCOL</div>
+
+      <!-- Threat assessment box -->
+      <div style="background:#0a0003;border:1px solid #4a0010;padding:8px;margin-bottom:10px;position:relative">
+        <div style="font-family:'Cinzel',serif;font-size:7px;letter-spacing:3px;color:#4a0010;margin-bottom:6px;text-transform:uppercase">◈ THREAT ASSESSMENT</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;text-align:center">
+          <div style="border:1px solid #330008;padding:4px">
+            <div class="data-val" style="color:#ff2200;font-size:16px;animation:glow-r 2.5s ease-in-out infinite">HIGH</div>
+            <div class="data-lbl" style="color:#660010">HERESY RISK</div>
+          </div>
+          <div style="border:1px solid #330008;padding:4px">
+            <div class="data-val" style="color:#cc1122;font-size:16px;animation:glow-r 3.2s ease-in-out infinite">47</div>
+            <div class="data-lbl" style="color:#660010">SUSPECTS</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-name" style="color:#660010">PSYKER CONTAMINATION</div>
+      <div class="bar-track" style="background:#0a0003"><div class="bar-fill" style="--w:71%;width:71%;background:linear-gradient(90deg,#440008,#ff2200);box-shadow:0 0 6px rgba(255,34,0,.4)"></div></div>
+      <div class="stat-name" style="color:#660010">CHAOS TAINT DETECTED</div>
+      <div class="bar-track" style="background:#0a0003"><div class="bar-fill" style="--w:23%;width:23%;background:linear-gradient(90deg,#2a0008,#cc1122);box-shadow:0 0 4px rgba(200,17,34,.4)"></div></div>
+      <div class="stat-name" style="color:#660010">PURGATION PROGRESS</div>
+      <div class="bar-track" style="background:#0a0003"><div class="bar-fill" style="--w:88%;width:88%;background:linear-gradient(90deg,#3a0008,#ff4422);box-shadow:0 0 4px rgba(255,68,34,.4)"></div></div>
+
+      <div class="divdr" style="background:#440008"></div>
+
+      <div class="status-row" style="color:#880020"><div class="sdot blink" style="background:#ff2200;animation-duration:.8s;box-shadow:0 0 4px #ff2200"></div>EXTREMIS DIABOLUS: CONFIRMED</div>
+      <div class="status-row" style="color:#880020"><div class="sdot blink" style="background:#cc1122;animation-duration:1.3s;box-shadow:0 0 4px #cc1122"></div>EXECUTE ON SIGHT</div>
+
+      <!-- Thought for the day -->
+      <div style="margin-top:8px;border-top:1px solid #2a0008;padding-top:6px;font-size:7px;color:#2a0008;font-family:'Cinzel',serif;letter-spacing:1px;text-align:center;font-style:italic;line-height:1.5">
+        "AN OPEN MIND IS LIKE A FORTRESS<br>WITH ITS GATES UNBARRED" <span class="blink" style="color:#660010">█</span>
+      </div>
+    </div>
+  </div>
+  <div style="margin-top:6px;font-size:8px;color:#555;font-family:'Cinzel',serif;letter-spacing:1px;text-align:center;line-height:1.6">Красный на чёрном<br>Тревожная орнаментика<br>Пергаментные цитаты</div>
+</div>
+
+</div><!-- end grid -->
+
+<!-- ══════════════════════════════════════════
+     4th variant preview strip: ASTRA MILITARUM phosphor
+════════════════════════════════════════════ -->
+<div style="margin-top:14px;font-family:'Cinzel',serif;font-size:8px;letter-spacing:3px;color:#333;text-align:center;margin-bottom:8px;text-transform:uppercase">◈ БОНУС: ASTRA MILITARUM — PHOSPHOR GREEN ◈</div>
+
+<div class="screen" style="background:#010a02;border:1px solid #1a4a10;padding:10px 14px;animation:flk 12s infinite">
+  <div class="scanlines"></div>
+  <div class="corner-tl" style="border-color:#22aa44"></div>
+  <div class="corner-tr" style="border-color:#22aa44"></div>
+  <div class="corner-bl" style="border-color:#22aa44"></div>
+  <div class="corner-br" style="border-color:#22aa44"></div>
+  <div style="position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+    <div>
+      <div style="font-family:'Cinzel',serif;font-size:10px;font-weight:900;letter-spacing:4px;color:#22cc44;animation:glow-g 3s ease-in-out infinite">ASTRA MILITARUM — COMMAND TERMINAL</div>
+      <div style="font-size:8px;color:#1a6b20;letter-spacing:2px;font-family:'Cinzel',serif;margin-top:2px">REGIMENT 7TH CADIAN — TACTICAL OPERATIONS CENTER</div>
+    </div>
+    <div style="display:flex;gap:16px">
+      <div style="text-align:center"><div style="font-size:22px;font-weight:700;color:#22cc44;animation:glow-g 2.8s ease-in-out infinite">14,847</div><div style="font-size:7px;color:#1a6b20;font-family:'Cinzel',serif;letter-spacing:2px">TROOPS ACTIVE</div></div>
+      <div style="text-align:center"><div style="font-size:22px;font-weight:700;color:#00ff66;animation:glow-g 3.4s ease-in-out infinite">312</div><div style="font-size:7px;color:#1a6b20;font-family:'Cinzel',serif;letter-spacing:2px">TANKS MOBILE</div></div>
+      <div style="text-align:center"><div style="font-size:22px;font-weight:700;color:#88ff44;animation:glow-g 2.3s ease-in-out infinite">97%</div><div style="font-size:7px;color:#1a6b20;font-family:'Cinzel',serif;letter-spacing:2px">MORALE</div></div>
+    </div>
+    <div style="font-size:8px;color:#0d3a10;font-family:'Cinzel',serif;letter-spacing:2px;border-left:1px solid #1a4a10;padding-left:12px">
+      SECTOR: CADIA PRIME<br>STATUS: <span style="color:#22cc44">HOLDING</span><br>THREAT: <span style="color:#ff4400">CHAOS INCURSION</span>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top:10px;font-size:8px;color:#444;font-family:'Cinzel',serif;letter-spacing:1px;text-align:center">
+  Зелёный фосфор — классика военных терминалов и старых ЭЛТ мониторов
+</div>
+
+</div>
