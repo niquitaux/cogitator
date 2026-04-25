@@ -100,6 +100,29 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
+    @keyframes sweepDown {
+      0% {
+        transform: translate3d(0, -120%, 0);
+        opacity: 0;
+      }
+      8% {
+        opacity: 0;
+      }
+      14% {
+        opacity: 0.28;
+      }
+      82% {
+        opacity: 0.28;
+      }
+      90% {
+        opacity: 0;
+      }
+      100% {
+        transform: translate3d(0, 920px, 0);
+        opacity: 0;
+      }
+    }
+
     .shell {
       width: min(1400px, calc(100vw - 24px));
       margin: 12px auto;
@@ -129,6 +152,72 @@
 
     .shell::before { top: -52px; left: -52px; transform: rotate(180deg); }
     .shell::after { bottom: -52px; right: -52px; }
+
+    .shell-sweep {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 18px;
+      transform: translate3d(0, -120%, 0);
+      transform-origin: center;
+      mix-blend-mode: screen;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 6;
+      opacity: 0;
+      background:
+        linear-gradient(
+          180deg,
+          transparent 0%,
+          rgba(243, 177, 61, 0.01) 25%,
+          rgba(243, 177, 61, 0.05) 48%,
+          rgba(243, 177, 61, 0.1) 50%,
+          rgba(243, 177, 61, 0.05) 52%,
+          rgba(243, 177, 61, 0.01) 75%,
+          transparent 100%
+        );
+      box-shadow: none;
+      filter: none;
+    }
+
+    .shell-sweep.is-active {
+      animation: sweepDown 8.5s linear 1;
+    }
+
+    .shell-sweep::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 50%;
+      height: 1px;
+      transform: translateY(-50%);
+      background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(243, 177, 61, 0.015) 12%,
+        rgba(243, 177, 61, 0.08) 50%,
+        rgba(243, 177, 61, 0.015) 88%,
+        transparent 100%
+      );
+      box-shadow: none;
+    }
+
+    .shell-sweep::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      background: linear-gradient(
+        180deg,
+        rgba(243, 177, 61, 0) 0%,
+        rgba(243, 177, 61, 0.015) 50%,
+        rgba(243, 177, 61, 0) 100%
+      );
+    }
 
     .header {
       display: grid;
@@ -804,6 +893,7 @@
 </head>
 <body>
   <div class="shell" id="app">
+    <div class="shell-sweep" aria-hidden="true"></div>
     <header class="header">
       <div>
         <div class="title">Cogitator Terminus VII</div>
@@ -943,6 +1033,7 @@
     let activeFilter = "ALL";
     let activePage = "metrics";
     let chartSeries = buildSeries();
+    let sweepTimer = null;
 
     function buildSeries() {
       let flux = 51;
@@ -1206,6 +1297,33 @@
       }).toUpperCase();
     }
 
+    function randomSweepDelay() {
+      return 4000 + Math.random() * 11000;
+    }
+
+    function triggerSweep() {
+      const sweep = document.querySelector(".shell-sweep");
+      if (!sweep) return;
+      sweep.classList.remove("is-active");
+      void sweep.offsetWidth;
+      sweep.classList.add("is-active");
+    }
+
+    function scheduleSweep() {
+      clearTimeout(sweepTimer);
+      sweepTimer = setTimeout(() => {
+        triggerSweep();
+        scheduleSweep();
+      }, randomSweepDelay());
+    }
+
+    const sweepNode = document.querySelector(".shell-sweep");
+    if (sweepNode) {
+      sweepNode.addEventListener("animationend", () => {
+        sweepNode.classList.remove("is-active");
+      });
+    }
+
     document.querySelectorAll("[data-page]").forEach((button) => {
       button.addEventListener("click", () => switchPage(button.dataset.page));
     });
@@ -1242,6 +1360,7 @@
 
     setInterval(updateClock, 1000);
     setInterval(advanceMetrics, 2400);
+    scheduleSweep();
   </script>
 </body>
 </html>
