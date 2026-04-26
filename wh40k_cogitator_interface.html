@@ -130,16 +130,19 @@
     }
 
     .shell {
-      width: min(1400px, calc(100vw - 24px));
-      margin: 12px auto;
+      width: 100%;
+      min-height: 100vh;
+      margin: 0;
       background:
         radial-gradient(circle at 50% 22%, rgb(var(--accent-bright-rgb) / 0.08), transparent 34%),
         radial-gradient(circle at 14% 72%, rgb(var(--line-bright-rgb) / 0.08), transparent 28%),
         linear-gradient(180deg, rgb(var(--accent-bright-rgb) / 0.04), transparent 12%),
         linear-gradient(180deg, rgba(0, 0, 0, 0.22), transparent 24%),
         var(--bg);
-      border: 1px solid #4f3110;
-      box-shadow: 0 0 0 1px rgb(var(--line-bright-rgb) / 0.32), 0 20px 60px rgba(0, 0, 0, 0.5);
+      border: 0;
+      box-shadow: none;
+      display: flex;
+      flex-direction: column;
       position: relative;
       overflow: visible;
       animation: flicker 11s linear infinite;
@@ -147,7 +150,7 @@
 
     .shell::before,
     .shell::after {
-      content: "";
+      content: none;
       position: absolute;
       width: 160px;
       height: 160px;
@@ -455,7 +458,8 @@
 
     .main {
       padding: 16px;
-      min-height: 680px;
+      flex: 1;
+      min-height: 0;
       position: relative;
       z-index: 3;
     }
@@ -1003,11 +1007,6 @@
     }
 
     @media (max-width: 520px) {
-      .shell {
-        width: min(100vw - 10px, 100%);
-        margin: 5px auto;
-      }
-
       .theme-chip {
         width: 7px;
         height: 7px;
