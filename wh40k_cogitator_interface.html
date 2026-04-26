@@ -1707,10 +1707,10 @@
 
         haze = Array.from({ length: 5 }, () => ({
           x: rand() * width,
-          y: rand() * height,
-          rx: width * (0.18 + rand() * 0.24),
-          ry: height * (0.14 + rand() * 0.22),
-          alpha: 0.035 + rand() * 0.055,
+          y: height * (0.32 + rand() * 0.68),
+          rx: width * (0.28 + rand() * 0.32),
+          ry: height * (0.18 + rand() * 0.28),
+          alpha: 0.018 + rand() * 0.034,
           vx: (rand() - 0.5) * 3.5,
           vy: -1.2 + rand() * 2.4
         }));
