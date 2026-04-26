@@ -42,7 +42,11 @@
     body {
       min-height: 100vh;
       background:
-        #050302;
+        radial-gradient(ellipse at 18% 52%, rgba(0, 128, 90, 0.22), transparent 36%),
+        radial-gradient(ellipse at 72% 38%, rgba(33, 80, 84, 0.2), transparent 34%),
+        radial-gradient(ellipse at 58% 82%, rgba(64, 78, 74, 0.14), transparent 42%),
+        radial-gradient(ellipse at 44% 46%, rgba(10, 22, 24, 0.9), transparent 58%),
+        linear-gradient(180deg, #07110f 0%, #020606 48%, #000202 100%);
       color: var(--text);
       font-family: var(--font-data);
       overflow-x: hidden;
@@ -58,18 +62,13 @@
     }
 
     body::before {
-      background:
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='360' height='360' viewBox='0 0 360 360'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.72' numOctaves='5' seed='19' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='1.35 0 0 0 -.18 0 1.35 0 0 -.18 0 0 1.35 0 -.18 0 0 0 .42 0'/%3E%3C/filter%3E%3Crect width='360' height='360' filter='url(%23n)' opacity='.58'/%3E%3C/svg%3E");
-      background-size: 360px 360px;
-      mix-blend-mode: soft-light;
-      opacity: 0.42;
+      background: none;
     }
 
     body::after {
       background:
-        radial-gradient(ellipse at 50% 48%, rgba(255, 255, 255, 0.035), transparent 22%),
-        radial-gradient(ellipse at 50% 50%, transparent 47%, rgba(0, 0, 0, 0.62) 100%);
-      opacity: 0.86;
+        radial-gradient(ellipse at 50% 50%, transparent 58%, rgba(0, 0, 0, 0.58) 100%);
+      opacity: 0.74;
     }
 
     @keyframes flicker {
@@ -98,16 +97,6 @@
     @keyframes revealUp {
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
-    }
-
-    @keyframes particleDriftNear {
-      from { transform: translate3d(-2vw, 2vh, 0); }
-      to { transform: translate3d(5vw, -7vh, 0); }
-    }
-
-    @keyframes particleDriftFar {
-      from { transform: translate3d(3vw, -1vh, 0); }
-      to { transform: translate3d(-4vw, 5vh, 0); }
     }
 
     @keyframes sweepDown {
@@ -161,44 +150,19 @@
       animation: flicker 11s linear infinite;
     }
 
+    .depth-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+      mix-blend-mode: screen;
+    }
+
     .shell::before,
     .shell::after {
-      content: "";
-      position: absolute;
-      pointer-events: none;
-    }
-
-    .shell::before {
-      inset: 0;
-      z-index: 1;
-      background:
-        radial-gradient(circle at 11% 19%, rgb(var(--accent-bright-rgb) / 0.26) 0 1px, transparent 2px),
-        radial-gradient(circle at 22% 68%, rgb(var(--accent-bright-rgb) / 0.18) 0 1px, transparent 2px),
-        radial-gradient(circle at 38% 28%, rgb(var(--accent-bright-rgb) / 0.14) 0 1px, transparent 2px),
-        radial-gradient(circle at 51% 77%, rgb(var(--accent-bright-rgb) / 0.24) 0 1px, transparent 2px),
-        radial-gradient(circle at 68% 36%, rgb(var(--accent-bright-rgb) / 0.16) 0 1px, transparent 2px),
-        radial-gradient(circle at 84% 61%, rgb(var(--accent-bright-rgb) / 0.22) 0 1px, transparent 2px),
-        radial-gradient(circle at 92% 22%, rgb(var(--accent-bright-rgb) / 0.13) 0 1px, transparent 2px);
-      opacity: 0.42;
-      filter: blur(0.2px);
-      animation: particleDriftFar 28s linear infinite alternate;
-    }
-
-    .shell::after {
-      inset: 0;
-      z-index: 1;
-      background:
-        radial-gradient(circle at 7% 43%, rgb(var(--accent-bright-rgb) / 0.38) 0 1px, transparent 2px),
-        radial-gradient(circle at 18% 84%, rgb(var(--accent-bright-rgb) / 0.26) 0 1px, transparent 2px),
-        radial-gradient(circle at 31% 53%, rgb(var(--accent-bright-rgb) / 0.2) 0 1px, transparent 2px),
-        radial-gradient(circle at 47% 18%, rgb(var(--accent-bright-rgb) / 0.32) 0 1px, transparent 2px),
-        radial-gradient(circle at 59% 64%, rgb(var(--accent-bright-rgb) / 0.24) 0 1px, transparent 2px),
-        radial-gradient(circle at 76% 47%, rgb(var(--accent-bright-rgb) / 0.34) 0 1px, transparent 2px),
-        radial-gradient(circle at 89% 78%, rgb(var(--accent-bright-rgb) / 0.22) 0 1px, transparent 2px);
-      opacity: 0.36;
-      mix-blend-mode: screen;
-      filter: blur(0.45px);
-      animation: particleDriftNear 18s linear infinite alternate;
+      content: none;
     }
 
     .shell-overlay {
@@ -207,11 +171,12 @@
       pointer-events: none;
       z-index: 2;
       background:
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='280' viewBox='0 0 280 280'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.15' numOctaves='4' seed='41' stitchTiles='stitch'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='table' tableValues='0 .2 .65 1'/%3E%3CfeFuncG type='table' tableValues='0 .2 .65 1'/%3E%3CfeFuncB type='table' tableValues='0 .2 .65 1'/%3E%3CfeFuncA type='table' tableValues='0 .18 .32 .48'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='280' height='280' filter='url(%23n)'/%3E%3C/svg%3E"),
-        radial-gradient(ellipse at 50% 48%, rgb(var(--accent-bright-rgb) / 0.1), transparent 42%),
-        radial-gradient(ellipse at 50% 50%, transparent 50%, rgba(0, 0, 0, 0.58) 100%);
-      background-size: 280px 280px, 100% 100%, 100% 100%;
-      opacity: 0.62;
+        radial-gradient(circle at 19% 24%, rgba(22, 255, 145, 0.08) 0 1px, transparent 3px),
+        radial-gradient(circle at 37% 73%, rgba(22, 255, 145, 0.06) 0 1px, transparent 3px),
+        radial-gradient(circle at 62% 31%, rgba(22, 255, 145, 0.075) 0 1px, transparent 3px),
+        radial-gradient(circle at 79% 58%, rgba(22, 255, 145, 0.06) 0 1px, transparent 3px),
+        radial-gradient(ellipse at 50% 50%, transparent 52%, rgba(0, 0, 0, 0.62) 100%);
+      opacity: 0.72;
       mix-blend-mode: screen;
     }
 
@@ -1185,6 +1150,7 @@
   </style>
 </head>
 <body>
+  <canvas class="depth-canvas" id="depth-canvas" aria-hidden="true"></canvas>
   <div class="shell" id="app">
     <div class="shell-overlay" aria-hidden="true"></div>
     <div class="shell-sweep" aria-hidden="true"></div>
@@ -1414,6 +1380,7 @@
     let chartSeries = buildSeries();
     let sweepTimer = null;
     let currentTheme = "mechanicus";
+    let depthAnimation = null;
 
     function buildSeries() {
       let flux = 51;
@@ -1686,6 +1653,130 @@
       return 4000 + Math.random() * 11000;
     }
 
+    function createSeededRandom(seed) {
+      let value = seed >>> 0;
+      return () => {
+        value = (value * 1664525 + 1013904223) >>> 0;
+        return value / 4294967296;
+      };
+    }
+
+    function initDepthCanvas() {
+      const canvas = document.getElementById("depth-canvas");
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const rand = createSeededRandom(41041);
+      let width = 0;
+      let height = 0;
+      let dpr = 1;
+      let particles = [];
+      let haze = [];
+      let lastDepthTime = 0;
+
+      function buildField() {
+        dpr = Math.min(window.devicePixelRatio || 1, 2);
+        width = window.innerWidth;
+        height = window.innerHeight;
+        canvas.width = Math.floor(width * dpr);
+        canvas.height = Math.floor(height * dpr);
+        canvas.style.width = `${width}px`;
+        canvas.style.height = `${height}px`;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        const count = Math.round(Math.min(170, Math.max(80, (width * height) / 14500)));
+        particles = Array.from({ length: count }, () => {
+          const depth = rand();
+          const near = depth > 0.72;
+          return {
+            x: rand() * width,
+            y: rand() * height,
+            z: depth,
+            r: near ? 1.4 + rand() * 2.6 : 0.45 + rand() * 1.2,
+            blur: near ? 1.1 + rand() * 2.4 : rand() * 0.6,
+            alpha: near ? 0.08 + rand() * 0.14 : 0.05 + rand() * 0.16,
+            vx: (near ? 8 + rand() * 18 : 2 + rand() * 7) * (rand() > 0.18 ? 1 : -1),
+            vy: (near ? -10 + rand() * 7 : -3 + rand() * 3.5),
+            sway: near ? 6 + rand() * 12 : 1.5 + rand() * 5,
+            pulse: 0.65 + rand() * 0.7,
+            phase: rand() * Math.PI * 2
+          };
+        });
+
+        haze = Array.from({ length: 5 }, () => ({
+          x: rand() * width,
+          y: rand() * height,
+          rx: width * (0.18 + rand() * 0.24),
+          ry: height * (0.14 + rand() * 0.22),
+          alpha: 0.035 + rand() * 0.055,
+          vx: (rand() - 0.5) * 3.5,
+          vy: -1.2 + rand() * 2.4
+        }));
+      }
+
+      function draw(time = 0) {
+        const delta = lastDepthTime ? Math.min(0.05, (time - lastDepthTime) / 1000) : 0.016;
+        lastDepthTime = time;
+        ctx.clearRect(0, 0, width, height);
+        ctx.globalCompositeOperation = "screen";
+
+        haze.forEach((cloud) => {
+          if (!reduceMotion) {
+            cloud.x += cloud.vx * delta;
+            cloud.y += cloud.vy * delta;
+          }
+          if (cloud.x < -cloud.rx) cloud.x = width + cloud.rx;
+          if (cloud.x > width + cloud.rx) cloud.x = -cloud.rx;
+          if (cloud.y < -cloud.ry) cloud.y = height + cloud.ry;
+          if (cloud.y > height + cloud.ry) cloud.y = -cloud.ry;
+
+          const gradient = ctx.createRadialGradient(cloud.x, cloud.y, 0, cloud.x, cloud.y, Math.max(cloud.rx, cloud.ry));
+          gradient.addColorStop(0, `rgba(50, 150, 126, ${cloud.alpha})`);
+          gradient.addColorStop(0.45, `rgba(22, 88, 78, ${cloud.alpha * 0.55})`);
+          gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
+          ctx.fillStyle = gradient;
+          ctx.beginPath();
+          ctx.ellipse(cloud.x, cloud.y, cloud.rx, cloud.ry, 0, 0, Math.PI * 2);
+          ctx.fill();
+        });
+
+        particles.forEach((particle) => {
+          if (!reduceMotion) {
+            const current = Math.sin(time * 0.00045 + particle.phase) * particle.sway;
+            particle.x += (particle.vx + current) * delta;
+            particle.y += particle.vy * delta;
+          }
+          if (particle.x < -12) particle.x = width + 12;
+          if (particle.x > width + 12) particle.x = -12;
+          if (particle.y < -12) particle.y = height + 12;
+          if (particle.y > height + 12) particle.y = -12;
+
+          const pulse = 0.78 + Math.sin(time * 0.00035 * particle.pulse + particle.phase) * 0.22;
+          const alpha = particle.alpha * pulse;
+          ctx.shadowBlur = particle.blur * 4;
+          ctx.shadowColor = `rgba(76, 255, 180, ${alpha})`;
+          ctx.fillStyle = `rgba(93, 255, 190, ${alpha})`;
+          ctx.beginPath();
+          ctx.arc(particle.x, particle.y, particle.r, 0, Math.PI * 2);
+          ctx.fill();
+        });
+
+        ctx.shadowBlur = 0;
+        ctx.globalCompositeOperation = "source-over";
+        if (!reduceMotion) depthAnimation = requestAnimationFrame(draw);
+      }
+
+      buildField();
+      draw();
+      window.addEventListener("resize", () => {
+        if (depthAnimation) cancelAnimationFrame(depthAnimation);
+        buildField();
+        draw();
+      });
+    }
+
     function applyTheme(name) {
       const theme = themes[name];
       if (!theme) return;
@@ -1779,6 +1870,7 @@
     });
 
     applyTheme(currentTheme);
+    initDepthCanvas();
     renderTasks();
     updateSignalPanel();
     updateClock();
