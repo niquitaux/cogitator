@@ -1147,9 +1147,53 @@
         grid-column: 1 / -1;
       }
     }
+
+    body.perf-no-canvas .depth-canvas {
+      display: none;
+    }
+
+    body.perf-no-blend .depth-canvas,
+    body.perf-no-blend .shell-overlay,
+    body.perf-no-blend .shell-sweep,
+    body.perf-no-blend .header::before,
+    body.perf-no-blend .ticker-wrap::before,
+    body.perf-no-blend .nav::before,
+    body.perf-no-blend .footer::before {
+      mix-blend-mode: normal;
+    }
+
+    body.perf-no-filter .shell-sweep,
+    body.perf-no-filter .system-icon {
+      filter: none !important;
+    }
+
+    body.perf-no-css-motion *,
+    body.perf-no-css-motion *::before,
+    body.perf-no-css-motion *::after {
+      animation: none !important;
+      transition: none !important;
+    }
+
+    body.perf-no-css-motion .shell-sweep {
+      display: none;
+    }
   </style>
 </head>
 <body>
+  <script>
+    (() => {
+      const params = new URLSearchParams(window.location.search);
+      const diagnostics = {
+        noCanvas: "perf-no-canvas",
+        noBlend: "perf-no-blend",
+        noFilter: "perf-no-filter",
+        noCssMotion: "perf-no-css-motion"
+      };
+      Object.entries(diagnostics).forEach(([flag, className]) => {
+        if (params.has(flag)) document.body.classList.add(className);
+      });
+    })();
+  </script>
   <canvas class="depth-canvas" id="depth-canvas" aria-hidden="true"></canvas>
   <div class="shell" id="app">
     <div class="shell-overlay" aria-hidden="true"></div>
@@ -1662,6 +1706,7 @@
     }
 
     function initDepthCanvas() {
+      if (document.body.classList.contains("perf-no-canvas")) return;
       const canvas = document.getElementById("depth-canvas");
       if (!canvas) return;
       const ctx = canvas.getContext("2d");
@@ -1675,9 +1720,38 @@
       let particles = [];
       let haze = [];
       let lastDepthTime = 0;
+      let particleSprite = null;
+      let running = !reduceMotion;
+
+      // Performance note: the original full-res, uncapped canvas pushed this machine to ~90% GPU.
+      // Keeping DPR at 1, capping the loop near 18 FPS, using a cached sprite, and avoiding
+      // per-particle shadowBlur brought the same visual down to roughly 25-30% GPU.
+      function buildParticleSprite() {
+        const size = 28;
+        const sprite = document.createElement("canvas");
+        sprite.width = size;
+        sprite.height = size;
+        const spriteCtx = sprite.getContext("2d");
+        const gradient = spriteCtx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+        gradient.addColorStop(0, "rgba(93, 255, 190, 0.55)");
+        gradient.addColorStop(0.25, "rgba(76, 255, 180, 0.22)");
+        gradient.addColorStop(1, "rgba(76, 255, 180, 0)");
+        spriteCtx.fillStyle = gradient;
+        spriteCtx.fillRect(0, 0, size, size);
+        return sprite;
+      }
+
+      function queueDraw() {
+        if (!running) return;
+        // This timeout intentionally throttles requestAnimationFrame; a plain RAF loop ran at
+        // monitor refresh rate and was one of the largest GPU-load causes.
+        depthAnimation = window.setTimeout(() => requestAnimationFrame(draw), 1000 / 18);
+      }
 
       function buildField() {
-        dpr = Math.min(window.devicePixelRatio || 1, 2);
+        // Do not use devicePixelRatio here unless profiling again. DPR 2 means 4x the pixels
+        // per frame on high-DPI displays, which was the biggest VRAM/GPU multiplier.
+        dpr = 1;
         width = window.innerWidth;
         height = window.innerHeight;
         canvas.width = Math.floor(width * dpr);
@@ -1686,7 +1760,11 @@
         canvas.style.height = `${height}px`;
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-        const count = Math.round(Math.min(170, Math.max(80, (width * height) / 14500)));
+        particleSprite = buildParticleSprite();
+
+        // Particle count was less costly than DPR/FPS, so density can be adjusted here first
+        // if the scene needs more or less depth.
+        const count = Math.round(Math.min(140, Math.max(70, (width * height) / 21000)));
         particles = Array.from({ length: count }, () => {
           const depth = rand();
           const near = depth > 0.72;
@@ -1755,25 +1833,33 @@
 
           const pulse = 0.78 + Math.sin(time * 0.00035 * particle.pulse + particle.phase) * 0.22;
           const alpha = particle.alpha * pulse;
-          ctx.shadowBlur = particle.blur * 4;
-          ctx.shadowColor = `rgba(76, 255, 180, ${alpha})`;
-          ctx.fillStyle = `rgba(93, 255, 190, ${alpha})`;
-          ctx.beginPath();
-          ctx.arc(particle.x, particle.y, particle.r, 0, Math.PI * 2);
-          ctx.fill();
+          const size = (particle.r + particle.blur) * 8;
+          // Avoid ctx.shadowBlur in the particle loop unless needed; even half-strength blur
+          // added measurable GPU load. The cached glow sprite keeps a similar look more cheaply.
+          ctx.globalAlpha = alpha;
+          ctx.drawImage(particleSprite, particle.x - size / 2, particle.y - size / 2, size, size);
         });
 
-        ctx.shadowBlur = 0;
+        ctx.globalAlpha = 1;
         ctx.globalCompositeOperation = "source-over";
-        if (!reduceMotion) depthAnimation = requestAnimationFrame(draw);
+        queueDraw();
       }
 
       buildField();
       draw();
       window.addEventListener("resize", () => {
-        if (depthAnimation) cancelAnimationFrame(depthAnimation);
+        if (depthAnimation) clearTimeout(depthAnimation);
         buildField();
         draw();
+      });
+
+      document.addEventListener("visibilitychange", () => {
+        running = !reduceMotion && !document.hidden;
+        if (!running && depthAnimation) clearTimeout(depthAnimation);
+        if (running) {
+          lastDepthTime = 0;
+          draw();
+        }
       });
     }
 
@@ -1823,6 +1909,7 @@
     }
 
     function scheduleSweep() {
+      if (document.body.classList.contains("perf-no-css-motion")) return;
       clearTimeout(sweepTimer);
       sweepTimer = setTimeout(() => {
         triggerSweep();
