@@ -778,6 +778,22 @@
         repeating-linear-gradient(180deg, transparent 0, transparent 2px, rgba(0, 0, 0, 0.11) 2px, rgba(0, 0, 0, 0.11) 4px);
     }
 
+    .weather-readout-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(220px, 300px);
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .weather-side {
+      align-content: stretch;
+    }
+
+    .weather-side .signal-box {
+      height: 100%;
+      align-content: center;
+    }
+
     #flux-chart {
       width: 100%;
       height: 100%;
@@ -873,6 +889,11 @@
     .input::placeholder {
       color: var(--text-faint);
       text-shadow: 0 0 4px rgb(var(--accent-bright-rgb) / 0.04);
+    }
+
+    .select {
+      appearance: none;
+      padding-right: 42px;
     }
 
     .input:focus,
@@ -1119,7 +1140,8 @@
       }
 
       .metrics-grid,
-      .tasks-grid {
+      .tasks-grid,
+      .weather-readout-grid {
         grid-template-columns: 1fr;
       }
     }
@@ -1245,14 +1267,33 @@
           </div>
         </div>
 
-        <div class="section-label">Energy flux temporal readout</div>
+        <div class="section-label"><span id="weather-section-title">Port Anaphius atmospheric augury</span></div>
         <div class="panel" style="margin-bottom: 16px;">
           <div class="chart-legend">
-            <span><span class="legend-swatch" style="color: var(--amber); background: rgb(var(--accent-bright-rgb) / 0.18);"></span>Energy flux</span>
-            <span><span class="legend-swatch" style="color: var(--red); background: rgb(var(--danger-rgb) / 0.18);"></span>Drive output</span>
+            <span><span class="legend-swatch" style="color: var(--amber); background: rgb(var(--accent-bright-rgb) / 0.18);"></span>Thermal omen</span>
+            <span><span class="legend-swatch" style="color: var(--red); background: rgb(var(--danger-rgb) / 0.18);"></span>Rainfall threat</span>
+            <span><span class="legend-swatch" style="color: var(--green); background: rgb(var(--success-rgb) / 0.18);"></span>Spore taint</span>
           </div>
-          <div class="chart-wrap">
-            <svg id="flux-chart" viewBox="0 0 1000 220" preserveAspectRatio="none" aria-label="Energy flux chart"></svg>
+          <div class="weather-readout-grid">
+            <div class="chart-wrap">
+              <svg id="flux-chart" viewBox="0 0 1000 220" preserveAspectRatio="none" aria-label="Atmospheric augury chart"></svg>
+            </div>
+            <div class="metric-side weather-side">
+              <div class="signal-box">
+                <div class="signal-title">Auspex weather litany</div>
+                <select class="select" id="weather-location" aria-label="Atmospheric auspex target">
+                  <option value="anapa">Port Anaphius</option>
+                  <option value="saint-petersburg">Petrograd Spire</option>
+                  <option value="stavropol">Stavropol Bastion</option>
+                  <option value="novokuznetsk">Nova Kuznetsk Forge</option>
+                </select>
+                <div class="signal-row"><span>Augur link</span><strong id="weather-link">AWAITING RITE</strong></div>
+                <div class="signal-row"><span>Thermal mark</span><strong id="weather-temp">-- C</strong></div>
+                <div class="signal-row"><span>Moisture saturation</span><strong id="weather-humidity">--%</strong></div>
+                <div class="signal-row"><span>Thermal drift</span><strong id="weather-delta">--</strong></div>
+                <div class="signal-row"><span>Spore taint</span><strong id="weather-allergens">UNREAD</strong></div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -1409,21 +1450,23 @@
     ];
 
     const priorityLabel = { EX: "Extremis", UR: "Urgent", RT: "Routine" };
+    const WEATHER_LOCATIONS = {
+      anapa: { label: "Port Anaphius", latitude: 44.894, longitude: 37.316, timezone: "Europe/Moscow" },
+      "saint-petersburg": { label: "Petrograd Spire", latitude: 59.9386, longitude: 30.3141, timezone: "Europe/Moscow" },
+      stavropol: { label: "Stavropol Bastion", latitude: 45.0428, longitude: 41.9734, timezone: "Europe/Moscow" },
+      novokuznetsk: { label: "Nova Kuznetsk Forge", latitude: 53.7575, longitude: 87.136, timezone: "Asia/Novokuznetsk" }
+    };
+    const WEATHER_FORECAST_HOURS = 36;
+    const WEATHER_ROTATION_INTERVAL = 30000;
+    const POLLEN_FIELDS = ["alder_pollen", "birch_pollen", "grass_pollen", "mugwort_pollen", "ragweed_pollen"];
     let activeFilter = "ALL";
     let activePage = "metrics";
-    let chartSeries = buildSeries();
+    let currentWeatherLocationId = "anapa";
+    let weatherSeries = [];
+    let weatherMeta = { status: "Awaiting", updatedAt: null, pollenAvailable: false };
+    let weatherRotationTimer = null;
     let sweepTimer = null;
     let currentTheme = "mechanicus";
-
-    function buildSeries() {
-      let flux = 51;
-      let drive = 39;
-      return Array.from({ length: 32 }, (_, index) => {
-        flux = clamp(flux + (Math.random() - 0.46) * 13, 18, 88);
-        drive = clamp(drive + (Math.random() - 0.48) * 10, 12, 73);
-        return { x: index, flux: Math.round(flux), drive: Math.round(drive) };
-      });
-    }
 
     function clamp(value, min, max) {
       return Math.max(min, Math.min(max, value));
@@ -1431,6 +1474,20 @@
 
     function themeColor(token) {
       return themes[currentTheme][token];
+    }
+
+    function currentWeatherLocation() {
+      return WEATHER_LOCATIONS[currentWeatherLocationId] || WEATHER_LOCATIONS.anapa;
+    }
+
+    function weatherLocationIds() {
+      return Object.keys(WEATHER_LOCATIONS);
+    }
+
+    function nextWeatherLocationId() {
+      const ids = weatherLocationIds();
+      const index = ids.indexOf(currentWeatherLocationId);
+      return ids[(index + 1 + ids.length) % ids.length];
     }
 
     function gaugeColor(value) {
@@ -1502,11 +1559,13 @@
       return vertical + horizontal;
     }
 
-    function buildAreaPath(points, width, height, maxValue) {
+    function buildAreaPath(points, width, height, minValue, maxValue) {
+      const safeMin = Number.isFinite(minValue) ? minValue : 0;
+      const safeMax = Number.isFinite(maxValue) && maxValue !== safeMin ? maxValue : safeMin + 1;
       const stepX = width / (points.length - 1);
       const mapped = points.map((value, index) => {
         const x = index * stepX;
-        const y = height - (value / maxValue) * height;
+        const y = height - ((value - safeMin) / (safeMax - safeMin)) * height;
         return [x, y];
       });
       const line = mapped.map(([x, y], index) => `${index === 0 ? "M" : "L"} ${x.toFixed(2)} ${y.toFixed(2)}`).join(" ");
@@ -1518,8 +1577,32 @@
       const svg = document.getElementById("flux-chart");
       const width = 1000;
       const height = 220;
-      const flux = buildAreaPath(chartSeries.map((point) => point.flux), width, height, 100);
-      const drive = buildAreaPath(chartSeries.map((point) => point.drive), width, height, 100);
+      const location = currentWeatherLocation();
+      if (!weatherSeries.length) {
+        svg.innerHTML = `
+          <g>${buildGridLines(width, height, 10, 5)}</g>
+          <text x="500" y="106" text-anchor="middle" fill="${themeColor("accentBright")}" font-family="Share Tech Mono, monospace" font-size="22" letter-spacing="4">AWAITING ${location.label.toUpperCase()} AUGURY</text>
+          <text x="500" y="132" text-anchor="middle" fill="${themeColor("lineBright")}" font-family="Share Tech Mono, monospace" font-size="12" letter-spacing="3">${weatherStatusLabel(weatherMeta.status)}</text>
+        `;
+        return;
+      }
+
+      const temps = weatherSeries.map((point) => point.temperature);
+      const precip = weatherSeries.map((point) => point.precipitationProbability);
+      const pollen = weatherSeries.map((point) => point.pollenBurden);
+      const tempMin = Math.floor(Math.min(...temps) - 2);
+      const tempMax = Math.ceil(Math.max(...temps) + 2);
+      const pollenMax = Math.max(1, Math.ceil(Math.max(...pollen) * 1.25));
+      const tempPath = buildAreaPath(temps, width, height, tempMin, tempMax);
+      const precipPath = buildAreaPath(precip, width, height, 0, 100);
+      const pollenPath = buildAreaPath(pollen, width, height, 0, pollenMax);
+      const labels = weatherSeries
+        .filter((_, index) => index % 6 === 0)
+        .map((point, index) => {
+          const x = (width / Math.max(1, weatherSeries.length - 1)) * (index * 6);
+          return `<text x="${x.toFixed(1)}" y="214" text-anchor="middle" fill="${themeColor("lineBright")}" font-family="Share Tech Mono, monospace" font-size="10">${formatHour(point.time)}</text>`;
+        })
+        .join("");
 
       svg.innerHTML = `
         <defs>
@@ -1531,22 +1614,155 @@
             <stop offset="0%" stop-color="${themeColor("danger")}" stop-opacity="0.24"/>
             <stop offset="100%" stop-color="${themeColor("danger")}" stop-opacity="0.01"/>
           </linearGradient>
+          <linearGradient id="pollen-fill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="${themeColor("success")}" stop-opacity="0.22"/>
+            <stop offset="100%" stop-color="${themeColor("success")}" stop-opacity="0"/>
+          </linearGradient>
         </defs>
         <g>${buildGridLines(width, height, 10, 5)}</g>
-        <path d="${flux.area}" fill="url(#flux-fill)"></path>
-        <path d="${drive.area}" fill="url(#drive-fill)"></path>
-        <path d="${flux.line}" fill="none" stroke="${themeColor("accentBright")}" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"></path>
-        <path d="${drive.line}" fill="none" stroke="${themeColor("danger")}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"></path>
+        <path d="${tempPath.area}" fill="url(#flux-fill)"></path>
+        <path d="${precipPath.area}" fill="url(#drive-fill)"></path>
+        ${weatherMeta.pollenAvailable ? `<path d="${pollenPath.area}" fill="url(#pollen-fill)"></path>` : ""}
+        <path d="${tempPath.line}" fill="none" stroke="${themeColor("accentBright")}" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"></path>
+        <path d="${precipPath.line}" fill="none" stroke="${themeColor("danger")}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"></path>
+        ${weatherMeta.pollenAvailable ? `<path d="${pollenPath.line}" fill="none" stroke="${themeColor("success")}" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="7 8"></path>` : ""}
+        <text x="12" y="20" fill="${themeColor("accentBright")}" font-family="Share Tech Mono, monospace" font-size="12">THERMAL ${tempMin}..${tempMax} C</text>
+        <text x="12" y="38" fill="${themeColor("danger")}" font-family="Share Tech Mono, monospace" font-size="12">RAIN THREAT 0..100%</text>
+        <text x="12" y="56" fill="${themeColor("success")}" font-family="Share Tech Mono, monospace" font-size="12">${weatherMeta.pollenAvailable ? `SPORE TAINT 0..${pollenMax}` : "SPORE DATA BEYOND AUSPEX"}</text>
+        <g>${labels}</g>
       `;
 
-      document.getElementById("flux-delta").textContent = calculateFluxDelta();
+      updateWeatherPanel();
     }
 
-    function calculateFluxDelta() {
-      const recent = chartSeries[chartSeries.length - 1].flux;
-      const prior = chartSeries[Math.max(0, chartSeries.length - 5)].flux;
-      const delta = (recent - prior).toFixed(1);
+    function calculateTemperatureDelta() {
+      if (weatherSeries.length < 2) return "--";
+      const recent = weatherSeries[0].temperature;
+      const later = weatherSeries[Math.min(weatherSeries.length - 1, 6)].temperature;
+      const delta = (later - recent).toFixed(1);
       return `${delta.startsWith("-") ? "" : "+"}${delta}`;
+    }
+
+    function buildWeatherUrl() {
+      const location = currentWeatherLocation();
+      const params = new URLSearchParams({
+        latitude: String(location.latitude),
+        longitude: String(location.longitude),
+        hourly: "temperature_2m,relative_humidity_2m,precipitation_probability,precipitation,weather_code",
+        forecast_hours: String(WEATHER_FORECAST_HOURS),
+        timezone: location.timezone
+      });
+      return `https://api.open-meteo.com/v1/forecast?${params}`;
+    }
+
+    function buildPollenUrl() {
+      const location = currentWeatherLocation();
+      const params = new URLSearchParams({
+        latitude: String(location.latitude),
+        longitude: String(location.longitude),
+        hourly: [...POLLEN_FIELDS, "european_aqi"].join(","),
+        forecast_hours: String(WEATHER_FORECAST_HOURS),
+        timezone: location.timezone
+      });
+      return `https://air-quality-api.open-meteo.com/v1/air-quality?${params}`;
+    }
+
+    async function fetchJson(url) {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return response.json();
+    }
+
+    async function loadWeatherTelemetry() {
+      weatherMeta.status = "Syncing";
+      weatherSeries = [];
+      updateWeatherPanel();
+      renderChart();
+
+      try {
+        const [weather, pollenResult] = await Promise.all([
+          fetchJson(buildWeatherUrl()),
+          fetchJson(buildPollenUrl()).catch(() => null)
+        ]);
+        weatherSeries = normalizeWeatherSeries(weather, pollenResult);
+        weatherMeta = {
+          status: weatherSeries.length ? "Online" : "No data",
+          updatedAt: new Date(),
+          pollenAvailable: weatherSeries.some((point) => point.pollenAvailable)
+        };
+      } catch (error) {
+        weatherSeries = [];
+        weatherMeta = { status: "Offline", updatedAt: null, pollenAvailable: false };
+        console.warn("Weather telemetry failed", error);
+      }
+
+      renderChart();
+      updateWeatherPanel();
+    }
+
+    function scheduleWeatherRotation() {
+      clearTimeout(weatherRotationTimer);
+      weatherRotationTimer = setTimeout(() => {
+        currentWeatherLocationId = nextWeatherLocationId();
+        loadWeatherTelemetry();
+        scheduleWeatherRotation();
+      }, WEATHER_ROTATION_INTERVAL);
+    }
+
+    function normalizeWeatherSeries(weather, pollen) {
+      const hourly = weather?.hourly;
+      if (!hourly?.time?.length) return [];
+      const pollenByTime = new Map();
+      const pollenHourly = pollen?.hourly;
+
+      if (pollenHourly?.time?.length) {
+        pollenHourly.time.forEach((time, index) => {
+          const values = POLLEN_FIELDS.map((field) => Number(pollenHourly[field]?.[index])).filter(Number.isFinite);
+          pollenByTime.set(time, {
+            burden: values.reduce((sum, value) => sum + value, 0),
+            available: values.length > 0
+          });
+        });
+      }
+
+      return hourly.time.map((time, index) => {
+        const pollenPoint = pollenByTime.get(time) || { burden: 0, available: false };
+        return {
+          time,
+          temperature: Number(hourly.temperature_2m?.[index] ?? 0),
+          humidity: Number(hourly.relative_humidity_2m?.[index]),
+          precipitationProbability: Number(hourly.precipitation_probability?.[index] ?? 0),
+          precipitation: Number(hourly.precipitation?.[index] ?? 0),
+          weatherCode: Number(hourly.weather_code?.[index]),
+          pollenBurden: pollenPoint.burden,
+          pollenAvailable: pollenPoint.available
+        };
+      }).filter((point) => Number.isFinite(point.temperature));
+    }
+
+    function pollenLabel(value, available) {
+      if (!available) return "NO AUSPEX";
+      if (value >= 120) return "SEVERE TAINT";
+      if (value >= 40) return "MARKED TAINT";
+      if (value > 0) return "LOW TAINT";
+      return "TRACE ONLY";
+    }
+
+    function weatherStatusLabel(status) {
+      const labels = {
+        Awaiting: "AWAITING RITE",
+        Syncing: "COMMUNING",
+        Online: "OMENS RECEIVED",
+        "No data": "NO OMENS",
+        Offline: "AUGUR SILENT"
+      };
+      return labels[status] || String(status).toUpperCase();
+    }
+
+    function formatHour(value) {
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return "--";
+      return date.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
     }
 
     function updateSignalPanel() {
@@ -1554,10 +1770,32 @@
       const maxGauge = Math.max(...gaugeData.map((item) => item.value));
       const status = maxGauge >= 90 ? "Vigilant" : average >= 65 ? "Nominal" : "Attentive";
       document.getElementById("average-load").textContent = `${average}%`;
+      document.getElementById("flux-delta").textContent = calculateSystemFluxDelta();
       document.getElementById("alert-state").textContent = status.toUpperCase();
       document.getElementById("sanctity-readout").textContent = `${(96 + Math.random() * 3.2).toFixed(1)}%`;
       document.getElementById("cycle-readout").textContent = `M41.999.${String(810 + Math.floor(Math.random() * 30)).padStart(3, "0")}`;
-      document.getElementById("link-readout").textContent = chartSeries[chartSeries.length - 1].drive > 60 ? "STRESSED" : "STABLE";
+      document.getElementById("link-readout").textContent = average >= 78 ? "STRESSED" : "STABLE";
+    }
+
+    function updateWeatherPanel() {
+      const current = weatherSeries[0];
+      const location = currentWeatherLocation();
+      const sectionTitle = document.getElementById("weather-section-title");
+      const locationSelect = document.getElementById("weather-location");
+      if (sectionTitle) sectionTitle.textContent = `${location.label} atmospheric augury`;
+      if (locationSelect) locationSelect.value = currentWeatherLocationId;
+      document.getElementById("weather-link").textContent = weatherStatusLabel(weatherMeta.status);
+      document.getElementById("weather-temp").textContent = current ? `${current.temperature.toFixed(1)} C` : "-- C";
+      document.getElementById("weather-humidity").textContent = current && Number.isFinite(current.humidity) ? `${Math.round(current.humidity)}%` : "--%";
+      document.getElementById("weather-delta").textContent = calculateTemperatureDelta();
+      document.getElementById("weather-allergens").textContent = current ? pollenLabel(current.pollenBurden, weatherMeta.pollenAvailable) : "UNREAD";
+    }
+
+    function calculateSystemFluxDelta() {
+      const cog = gaugeData.find((gauge) => gauge.id === "cog")?.value ?? 0;
+      const vox = gaugeData.find((gauge) => gauge.id === "vox")?.value ?? 0;
+      const delta = ((cog - vox) / 10).toFixed(1);
+      return `${delta.startsWith("-") ? "" : "+"}${delta}`;
     }
 
     function advanceMetrics() {
@@ -1573,19 +1811,8 @@
         gauge.value = clamp(gauge.value + (Math.random() - 0.5) * drift, min, max);
       });
 
-      chartSeries = [...chartSeries.slice(1), nextChartPoint()];
       renderGauges();
-      renderChart();
       updateSignalPanel();
-    }
-
-    function nextChartPoint() {
-      const last = chartSeries[chartSeries.length - 1];
-      return {
-        x: last.x + 1,
-        flux: Math.round(clamp(last.flux + (Math.random() - 0.46) * 13, 18, 88)),
-        drive: Math.round(clamp(last.drive + (Math.random() - 0.5) * 10, 12, 73))
-      };
     }
 
     function renderTasks() {
@@ -1764,6 +1991,12 @@
       });
     });
 
+    document.getElementById("weather-location").addEventListener("change", (event) => {
+      currentWeatherLocationId = event.target.value;
+      loadWeatherTelemetry();
+      scheduleWeatherRotation();
+    });
+
     document.getElementById("add-task").addEventListener("click", addTask);
     document.getElementById("purge-done").addEventListener("click", purgeCompleted);
     document.getElementById("task-input").addEventListener("keydown", (event) => {
@@ -1781,11 +2014,14 @@
     applyTheme(currentTheme);
     renderTasks();
     updateSignalPanel();
+    loadWeatherTelemetry();
     updateClock();
     syncFilterButtons();
 
     setInterval(updateClock, 1000);
     setInterval(advanceMetrics, 2400);
+    setInterval(loadWeatherTelemetry, 30 * 60 * 1000);
+    scheduleWeatherRotation();
     scheduleSweep();
   </script>
 </body>
