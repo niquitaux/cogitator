@@ -802,7 +802,7 @@
 
     .wind-instrument {
       display: grid;
-      grid-template-rows: 138px auto;
+      grid-template-rows: auto 134px auto;
       gap: 8px;
       align-content: center;
       justify-items: center;
@@ -818,8 +818,8 @@
 
     .wind-compass {
       position: relative;
-      width: 138px;
-      height: 138px;
+      width: 134px;
+      height: 134px;
     }
 
     .wind-compass svg {
@@ -860,16 +860,6 @@
     }
 
     .wind-rose-meta .signal-row {
-      font-size: 0.72rem;
-      gap: 8px;
-      line-height: 1.15;
-    }
-
-    .wind-rose-meta .signal-row span:first-child {
-      letter-spacing: 0.1em;
-    }
-
-    .wind-rose-meta .signal-row strong {
       white-space: nowrap;
     }
 
@@ -1378,6 +1368,7 @@
               <svg id="flux-chart" viewBox="0 0 1000 220" preserveAspectRatio="none" aria-label="Atmospheric augury chart"></svg>
             </div>
             <div class="wind-instrument" id="wind-instrument" aria-label="Selected city wind vector map">
+              <div class="signal-title">Vector vane</div>
               <div class="wind-compass" id="wind-compass"></div>
               <div class="wind-rose-meta" id="wind-meta">
                 <div class="signal-row"><span>Vector lock</span><strong id="wind-vector">UNREAD</strong></div>
@@ -1386,14 +1377,14 @@
             </div>
             <div class="metric-side weather-side">
               <div class="signal-box">
-                <div class="signal-title">Atmospheric cogitator rite</div>
+                <div class="signal-title">Atmospheric cogitator</div>
                 <select class="select" id="weather-location" aria-label="Atmospheric auspex target">
                   <option value="anapa">Port Anaphius</option>
                   <option value="saint-petersburg">Petrograd Spire</option>
                   <option value="stavropol">Stavropol Bastion</option>
                   <option value="novokuznetsk">Nova Kuznetsk Forge</option>
                 </select>
-                <div class="signal-row"><span>Augur link</span><strong id="weather-link">AWAITING RITE</strong></div>
+                <div class="signal-row"><span>Sky omen</span><strong id="weather-sky">UNREAD</strong></div>
                 <div class="signal-row"><span>Thermal mark</span><strong id="weather-temp">-- C</strong></div>
                 <div class="signal-row"><span>Moisture saturation</span><strong id="weather-humidity">--%</strong></div>
                 <div class="signal-row"><span>Thermal drift</span><strong id="weather-delta">--</strong></div>
@@ -1964,6 +1955,22 @@
       return "TRACE ONLY";
     }
 
+    function skyOmenLabel(code) {
+      if (!Number.isFinite(code)) return "UNREAD";
+      if (code === 0) return "CLEAR";
+      if (code === 1) return "BRIGHT";
+      if (code === 2) return "VEILED";
+      if (code === 3) return "CLOUDED";
+      if (code === 45 || code === 48) return "FOGGED";
+      if (code >= 51 && code <= 57) return "DRIZZLE";
+      if (code >= 61 && code <= 67) return "RAIN";
+      if (code >= 71 && code <= 77) return "SNOW";
+      if (code >= 80 && code <= 82) return "SHOWERS";
+      if (code >= 85 && code <= 86) return "SNOWFALL";
+      if (code >= 95 && code <= 99) return "STORM";
+      return "UNREAD";
+    }
+
     function weatherStatusLabel(status) {
       const labels = {
         Awaiting: "AWAITING RITE",
@@ -2000,7 +2007,7 @@
       const locationSelect = document.getElementById("weather-location");
       if (sectionTitle) sectionTitle.textContent = `${location.label} atmospheric augury`;
       if (locationSelect) locationSelect.value = currentWeatherLocationId;
-      document.getElementById("weather-link").textContent = weatherStatusLabel(weatherMeta.status);
+      document.getElementById("weather-sky").textContent = current ? skyOmenLabel(current.weatherCode) : weatherStatusLabel(weatherMeta.status);
       document.getElementById("weather-temp").textContent = current ? `${current.temperature.toFixed(1)} C` : "-- C";
       document.getElementById("weather-humidity").textContent = current && Number.isFinite(current.humidity) ? `${Math.round(current.humidity)}%` : "--%";
       document.getElementById("weather-delta").textContent = calculateTemperatureDelta();
