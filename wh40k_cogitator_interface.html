@@ -780,7 +780,7 @@
 
     .weather-readout-grid {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(220px, 300px);
+      grid-template-columns: minmax(0, 1fr) minmax(150px, 178px) minmax(220px, 300px);
       gap: 12px;
       align-items: stretch;
     }
@@ -798,6 +798,97 @@
       width: 100%;
       height: 100%;
       display: block;
+    }
+
+    .wind-instrument {
+      display: grid;
+      grid-template-rows: 138px auto;
+      gap: 8px;
+      align-content: center;
+      justify-items: center;
+      padding: 9px 12px 10px;
+      min-height: 220px;
+      border: 1px solid rgb(var(--accent-bright-rgb) / 0.12);
+      background:
+        repeating-linear-gradient(180deg, transparent 0, transparent 2px, rgba(0, 0, 0, 0.12) 2px, rgba(0, 0, 0, 0.12) 4px),
+        radial-gradient(circle at 50% 0%, rgb(var(--accent-bright-rgb) / 0.05), transparent 42%),
+        radial-gradient(circle at 68% 48%, rgb(var(--success-rgb) / 0.05), transparent 46%),
+        rgb(var(--accent-bright-rgb) / 0.03);
+    }
+
+    .wind-compass {
+      position: relative;
+      width: 138px;
+      height: 138px;
+    }
+
+    .wind-compass svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+      animation: phosphorGlow 8s ease-in-out infinite;
+      filter: drop-shadow(0 0 8px rgb(var(--line-bright-rgb) / 0.2));
+    }
+
+    .wind-compass .wind-stream {
+      animation: windStream 4.8s steps(18, end) infinite;
+      opacity: 0.92;
+    }
+
+    .wind-compass .wind-stream:nth-of-type(2) {
+      animation-duration: 6.2s;
+      animation-delay: -1.4s;
+      opacity: 0.72;
+    }
+
+    .wind-compass .wind-stream:nth-of-type(3) {
+      animation-duration: 7.4s;
+      animation-delay: -2.5s;
+      opacity: 0.64;
+    }
+
+    .wind-compass .wind-glyphs {
+      animation: windStream 8.6s steps(12, end) infinite;
+      opacity: 0.86;
+    }
+
+    .wind-rose-meta {
+      display: grid;
+      gap: 4px;
+      width: 100%;
+      align-self: start;
+    }
+
+    .wind-rose-meta .signal-row {
+      font-size: 0.72rem;
+      gap: 8px;
+      line-height: 1.15;
+    }
+
+    .wind-rose-meta .signal-row span:first-child {
+      letter-spacing: 0.1em;
+    }
+
+    .wind-rose-meta .signal-row strong {
+      white-space: nowrap;
+    }
+
+    @keyframes phosphorGlow {
+      0%, 100% { filter: drop-shadow(0 0 7px rgb(var(--line-bright-rgb) / 0.18)); }
+      45% { filter: drop-shadow(0 0 14px rgb(var(--success-rgb) / 0.34)); }
+      70% { filter: drop-shadow(0 0 10px rgb(var(--accent-bright-rgb) / 0.26)); }
+    }
+
+    @keyframes windStream {
+      to { stroke-dashoffset: -56; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .wind-compass svg,
+      .wind-compass .wind-stream,
+      .wind-compass .wind-glyphs {
+        animation: none;
+      }
     }
 
     .systems-grid {
@@ -1203,6 +1294,13 @@
       .task-item > .button {
         grid-column: 1 / -1;
       }
+
+      .wind-instrument {
+        grid-template-rows: auto auto;
+        justify-items: center;
+        min-height: 190px;
+      }
+
     }
   </style>
 </head>
@@ -1273,14 +1371,22 @@
             <span><span class="legend-swatch" style="color: var(--amber); background: rgb(var(--accent-bright-rgb) / 0.18);"></span>Thermal omen</span>
             <span><span class="legend-swatch" style="color: var(--red); background: rgb(var(--danger-rgb) / 0.18);"></span>Rainfall threat</span>
             <span><span class="legend-swatch" style="color: var(--green); background: rgb(var(--success-rgb) / 0.18);"></span>Spore taint</span>
+            <span><span class="legend-swatch" style="color: var(--line-bright); background: rgb(var(--line-bright-rgb) / 0.18);"></span>Solar scourge</span>
           </div>
           <div class="weather-readout-grid">
             <div class="chart-wrap">
               <svg id="flux-chart" viewBox="0 0 1000 220" preserveAspectRatio="none" aria-label="Atmospheric augury chart"></svg>
             </div>
+            <div class="wind-instrument" id="wind-instrument" aria-label="Selected city wind vector map">
+              <div class="wind-compass" id="wind-compass"></div>
+              <div class="wind-rose-meta" id="wind-meta">
+                <div class="signal-row"><span>Vector lock</span><strong id="wind-vector">UNREAD</strong></div>
+                <div class="signal-row"><span>Wind speed</span><strong id="wind-speed">--</strong></div>
+              </div>
+            </div>
             <div class="metric-side weather-side">
               <div class="signal-box">
-                <div class="signal-title">Auspex weather litany</div>
+                <div class="signal-title">Atmospheric cogitator rite</div>
                 <select class="select" id="weather-location" aria-label="Atmospheric auspex target">
                   <option value="anapa">Port Anaphius</option>
                   <option value="saint-petersburg">Petrograd Spire</option>
@@ -1292,6 +1398,7 @@
                 <div class="signal-row"><span>Moisture saturation</span><strong id="weather-humidity">--%</strong></div>
                 <div class="signal-row"><span>Thermal drift</span><strong id="weather-delta">--</strong></div>
                 <div class="signal-row"><span>Spore taint</span><strong id="weather-allergens">UNREAD</strong></div>
+                <div class="signal-row"><span>Solar scourge</span><strong id="weather-uv">--</strong></div>
               </div>
             </div>
           </div>
@@ -1463,7 +1570,7 @@
     let activePage = "metrics";
     let currentWeatherLocationId = "anapa";
     let weatherSeries = [];
-    let weatherMeta = { status: "Awaiting", updatedAt: null, pollenAvailable: false };
+    let weatherMeta = { status: "Awaiting", updatedAt: null, pollenAvailable: false, uvAvailable: false, windAvailable: false };
     let weatherRotationTimer = null;
     let sweepTimer = null;
     let currentTheme = "mechanicus";
@@ -1584,18 +1691,22 @@
           <text x="500" y="106" text-anchor="middle" fill="${themeColor("accentBright")}" font-family="Share Tech Mono, monospace" font-size="22" letter-spacing="4">AWAITING ${location.label.toUpperCase()} AUGURY</text>
           <text x="500" y="132" text-anchor="middle" fill="${themeColor("lineBright")}" font-family="Share Tech Mono, monospace" font-size="12" letter-spacing="3">${weatherStatusLabel(weatherMeta.status)}</text>
         `;
+        renderWindRose();
         return;
       }
 
       const temps = weatherSeries.map((point) => point.temperature);
       const precip = weatherSeries.map((point) => point.precipitationProbability);
       const pollen = weatherSeries.map((point) => point.pollenBurden);
+      const uv = weatherSeries.map((point) => point.uvIndex);
       const tempMin = Math.floor(Math.min(...temps) - 2);
       const tempMax = Math.ceil(Math.max(...temps) + 2);
       const pollenMax = Math.max(1, Math.ceil(Math.max(...pollen) * 1.25));
+      const uvMax = Math.max(11, Math.ceil(Math.max(...uv.filter(Number.isFinite), 0) * 1.2));
       const tempPath = buildAreaPath(temps, width, height, tempMin, tempMax);
       const precipPath = buildAreaPath(precip, width, height, 0, 100);
       const pollenPath = buildAreaPath(pollen, width, height, 0, pollenMax);
+      const uvPath = buildAreaPath(uv.map((value) => Number.isFinite(value) ? value : 0), width, height, 0, uvMax);
       const labels = weatherSeries
         .filter((_, index) => index % 6 === 0)
         .map((point, index) => {
@@ -1618,21 +1729,29 @@
             <stop offset="0%" stop-color="${themeColor("success")}" stop-opacity="0.22"/>
             <stop offset="100%" stop-color="${themeColor("success")}" stop-opacity="0"/>
           </linearGradient>
+          <linearGradient id="uv-fill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="${themeColor("lineBright")}" stop-opacity="0.2"/>
+            <stop offset="100%" stop-color="${themeColor("lineBright")}" stop-opacity="0"/>
+          </linearGradient>
         </defs>
         <g>${buildGridLines(width, height, 10, 5)}</g>
         <path d="${tempPath.area}" fill="url(#flux-fill)"></path>
         <path d="${precipPath.area}" fill="url(#drive-fill)"></path>
         ${weatherMeta.pollenAvailable ? `<path d="${pollenPath.area}" fill="url(#pollen-fill)"></path>` : ""}
+        ${weatherMeta.uvAvailable ? `<path d="${uvPath.area}" fill="url(#uv-fill)"></path>` : ""}
         <path d="${tempPath.line}" fill="none" stroke="${themeColor("accentBright")}" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"></path>
         <path d="${precipPath.line}" fill="none" stroke="${themeColor("danger")}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"></path>
         ${weatherMeta.pollenAvailable ? `<path d="${pollenPath.line}" fill="none" stroke="${themeColor("success")}" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="7 8"></path>` : ""}
+        ${weatherMeta.uvAvailable ? `<path d="${uvPath.line}" fill="none" stroke="${themeColor("lineBright")}" stroke-width="1.9" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="2 7"></path>` : ""}
         <text x="12" y="20" fill="${themeColor("accentBright")}" font-family="Share Tech Mono, monospace" font-size="12">THERMAL ${tempMin}..${tempMax} C</text>
         <text x="12" y="38" fill="${themeColor("danger")}" font-family="Share Tech Mono, monospace" font-size="12">RAIN THREAT 0..100%</text>
         <text x="12" y="56" fill="${themeColor("success")}" font-family="Share Tech Mono, monospace" font-size="12">${weatherMeta.pollenAvailable ? `SPORE TAINT 0..${pollenMax}` : "SPORE DATA BEYOND AUSPEX"}</text>
+        <text x="12" y="74" fill="${themeColor("lineBright")}" font-family="Share Tech Mono, monospace" font-size="12">${weatherMeta.uvAvailable ? `SOLAR SCOURGE 0..${uvMax}` : "SOLAR DATA VEILED"}</text>
         <g>${labels}</g>
       `;
 
       updateWeatherPanel();
+      renderWindRose();
     }
 
     function calculateTemperatureDelta() {
@@ -1648,7 +1767,7 @@
       const params = new URLSearchParams({
         latitude: String(location.latitude),
         longitude: String(location.longitude),
-        hourly: "temperature_2m,relative_humidity_2m,precipitation_probability,precipitation,weather_code",
+        hourly: "temperature_2m,relative_humidity_2m,precipitation_probability,precipitation,weather_code,uv_index,wind_speed_10m,wind_direction_10m",
         forecast_hours: String(WEATHER_FORECAST_HOURS),
         timezone: location.timezone
       });
@@ -1674,8 +1793,8 @@
     }
 
     async function loadWeatherTelemetry() {
-      weatherMeta.status = "Syncing";
       weatherSeries = [];
+      weatherMeta = { ...weatherMeta, status: "Syncing", uvAvailable: false, windAvailable: false };
       updateWeatherPanel();
       renderChart();
 
@@ -1688,11 +1807,13 @@
         weatherMeta = {
           status: weatherSeries.length ? "Online" : "No data",
           updatedAt: new Date(),
-          pollenAvailable: weatherSeries.some((point) => point.pollenAvailable)
+          pollenAvailable: weatherSeries.some((point) => point.pollenAvailable),
+          uvAvailable: weatherSeries.some((point) => Number.isFinite(point.uvIndex)),
+          windAvailable: weatherSeries.some((point) => Number.isFinite(point.windSpeed) && Number.isFinite(point.windDirection))
         };
       } catch (error) {
         weatherSeries = [];
-        weatherMeta = { status: "Offline", updatedAt: null, pollenAvailable: false };
+        weatherMeta = { status: "Offline", updatedAt: null, pollenAvailable: false, uvAvailable: false, windAvailable: false };
         console.warn("Weather telemetry failed", error);
       }
 
@@ -1734,10 +1855,105 @@
           precipitationProbability: Number(hourly.precipitation_probability?.[index] ?? 0),
           precipitation: Number(hourly.precipitation?.[index] ?? 0),
           weatherCode: Number(hourly.weather_code?.[index]),
+          uvIndex: Number(hourly.uv_index?.[index]),
+          windSpeed: Number(hourly.wind_speed_10m?.[index]),
+          windDirection: Number(hourly.wind_direction_10m?.[index]),
           pollenBurden: pollenPoint.burden,
           pollenAvailable: pollenPoint.available
         };
       }).filter((point) => Number.isFinite(point.temperature));
+    }
+
+    function uvLabel(value) {
+      if (!Number.isFinite(value)) return "UNREAD";
+      if (value >= 11) return `${value.toFixed(1)} EXTREME`;
+      if (value >= 8) return `${value.toFixed(1)} SEVERE`;
+      if (value >= 6) return `${value.toFixed(1)} HIGH`;
+      if (value >= 3) return `${value.toFixed(1)} MARKED`;
+      return `${value.toFixed(1)} LOW`;
+    }
+
+    function windBearingLabel(degrees) {
+      if (!Number.isFinite(degrees)) return "UNREAD";
+      const directions = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
+      return directions[Math.round((((degrees % 360) + 360) % 360) / 45) % directions.length];
+    }
+
+    function buildWindRoseSvg(speed, direction) {
+      const hasWind = Number.isFinite(speed) && Number.isFinite(direction);
+      const normalizedDirection = hasWind ? (((direction % 360) + 360) % 360) : 0;
+      const flowTo = (normalizedDirection + 180) % 360;
+      const streamRotation = flowTo - 90;
+      const streamAngle = hasWind ? `rotate(${streamRotation} 60 60)` : "";
+      const streamWidth = hasWind ? (0.76 + clamp(Number(speed) || 0, 0, 60) / 60 * 0.86).toFixed(2) : "0.8";
+      const bearing = windBearingLabel(direction);
+
+      return `
+        <svg viewBox="0 0 120 120" aria-hidden="true">
+        <defs>
+          <clipPath id="wind-rose-clip">
+            <circle cx="60" cy="60" r="49"></circle>
+          </clipPath>
+        </defs>
+        <circle cx="60" cy="60" r="52" fill="rgba(0, 0, 0, 0.22)" stroke="${themeColor("line")}" stroke-width="1.1" stroke-dasharray="2 5"></circle>
+        <circle cx="60" cy="60" r="35" fill="none" stroke="${themeColor("line")}" stroke-width="0.9" opacity="0.68"></circle>
+        <circle cx="60" cy="60" r="20" fill="none" stroke="${themeColor("success")}" stroke-width="0.8" opacity="0.36" stroke-dasharray="3 5"></circle>
+        <line x1="60" y1="10" x2="60" y2="110" stroke="${themeColor("line")}" stroke-width="0.8" opacity="0.58"></line>
+        <line x1="10" y1="60" x2="110" y2="60" stroke="${themeColor("line")}" stroke-width="0.8" opacity="0.58"></line>
+        <line x1="25" y1="25" x2="95" y2="95" stroke="${themeColor("line")}" stroke-width="0.65" opacity="0.38"></line>
+        <line x1="95" y1="25" x2="25" y2="95" stroke="${themeColor("line")}" stroke-width="0.65" opacity="0.38"></line>
+        <text x="60" y="14" text-anchor="middle" fill="${themeColor("lineBright")}" font-family="Share Tech Mono, monospace" font-size="9">N</text>
+        <text x="60" y="111" text-anchor="middle" fill="${themeColor("lineBright")}" font-family="Share Tech Mono, monospace" font-size="9">S</text>
+        <text x="105" y="63" text-anchor="middle" fill="${themeColor("lineBright")}" font-family="Share Tech Mono, monospace" font-size="9">E</text>
+        <text x="15" y="63" text-anchor="middle" fill="${themeColor("lineBright")}" font-family="Share Tech Mono, monospace" font-size="9">W</text>
+        ${hasWind ? `
+          <g clip-path="url(#wind-rose-clip)" transform="${streamAngle}">
+            <g class="wind-stream">
+              <path d="M14 29 L29 24 M37 23 L45 21 M54 21 L72 17 M83 15 L102 10" fill="none" stroke="${themeColor("success")}" stroke-width="${streamWidth}" stroke-linecap="butt" stroke-dasharray="1 7"></path>
+              <path d="M9 47 L23 43 M32 43 L51 40 M61 39 L74 36 M83 35 L110 30" fill="none" stroke="${themeColor("success")}" stroke-width="${streamWidth}" stroke-linecap="butt" stroke-dasharray="1 8"></path>
+              <path d="M13 66 L34 62 M43 62 L58 59 M69 58 L87 54 M96 52 L108 49" fill="none" stroke="${themeColor("success")}" stroke-width="${streamWidth}" stroke-linecap="butt" stroke-dasharray="1 7"></path>
+              <path d="M18 86 L30 83 M42 81 L57 78 M66 77 L79 74 M90 71 L103 67" fill="none" stroke="${themeColor("success")}" stroke-width="${streamWidth}" stroke-linecap="butt" stroke-dasharray="1 9"></path>
+            </g>
+            <g class="wind-stream">
+              <path d="M3 37 L17 35 M27 34 L39 32 M51 31 L66 28 M77 27 L96 23 M105 22 L119 20" fill="none" stroke="${themeColor("lineBright")}" stroke-width="0.92" stroke-linecap="butt" stroke-dasharray="2 13"></path>
+              <path d="M2 77 L18 73 M29 72 L45 69 M56 69 L73 65 M84 63 L103 58 M111 57 L121 55" fill="none" stroke="${themeColor("lineBright")}" stroke-width="0.92" stroke-linecap="butt" stroke-dasharray="2 15"></path>
+              <path d="M12 98 L24 95 M37 94 L49 91 M63 89 L81 84 M94 82 L110 78" fill="none" stroke="${themeColor("lineBright")}" stroke-width="0.8" stroke-linecap="butt" stroke-dasharray="1 14"></path>
+            </g>
+            <g class="wind-stream">
+              <path d="M20 18 L27 17 M39 15 L47 14 M62 12 L69 11 M83 9 L97 7" fill="none" stroke="${themeColor("danger")}" stroke-width="0.78" stroke-linecap="butt" stroke-dasharray="1 17"></path>
+              <path d="M24 105 L33 102 M45 101 L55 99 M68 96 L76 94 M91 91 L101 88" fill="none" stroke="${themeColor("danger")}" stroke-width="0.78" stroke-linecap="butt" stroke-dasharray="1 18"></path>
+            </g>
+            <g class="wind-glyphs" fill="${themeColor("lineBright")}" font-family="Share Tech Mono, monospace" font-size="5.4">
+              <text x="20" y="55">I</text>
+              <text x="47" y="51">·</text>
+              <text x="71" y="48">I</text>
+              <text x="96" y="44">·</text>
+              <text x="28" y="75">·</text>
+              <text x="58" y="72">I</text>
+              <text x="88" y="68">·</text>
+            </g>
+          </g>
+          <text x="60" y="64" text-anchor="middle" fill="${themeColor("accentBright")}" font-family="Share Tech Mono, monospace" font-size="13" letter-spacing="1.2" style="text-shadow: 0 0 8px ${themeColor("accentBright")};">${bearing}</text>
+        ` : `
+          <text x="60" y="64" text-anchor="middle" fill="${themeColor("accentBright")}" font-family="Share Tech Mono, monospace" font-size="10" letter-spacing="2">NO WIND</text>
+        `}
+        </svg>
+      `;
+    }
+
+    function renderWindRose() {
+      const root = document.getElementById("wind-compass");
+      if (!root) return;
+      const current = weatherSeries[0];
+      const speed = current?.windSpeed;
+      const direction = current?.windDirection;
+      const hasWind = Number.isFinite(speed) && Number.isFinite(direction);
+      const bearing = windBearingLabel(direction);
+      const vector = document.getElementById("wind-vector");
+      const speedNode = document.getElementById("wind-speed");
+      root.innerHTML = buildWindRoseSvg(speed, direction);
+      if (vector) vector.textContent = hasWind ? `${Math.round(direction)} deg` : "UNREAD";
+      if (speedNode) speedNode.textContent = hasWind ? `${Math.round(speed)} km/h` : "--";
     }
 
     function pollenLabel(value, available) {
@@ -1789,6 +2005,8 @@
       document.getElementById("weather-humidity").textContent = current && Number.isFinite(current.humidity) ? `${Math.round(current.humidity)}%` : "--%";
       document.getElementById("weather-delta").textContent = calculateTemperatureDelta();
       document.getElementById("weather-allergens").textContent = current ? pollenLabel(current.pollenBurden, weatherMeta.pollenAvailable) : "UNREAD";
+      document.getElementById("weather-uv").textContent = current ? uvLabel(current.uvIndex) : "UNREAD";
+      renderWindRose();
     }
 
     function calculateSystemFluxDelta() {
