@@ -1554,7 +1554,7 @@
       stavropol: { label: "Stavropol Bastion", latitude: 45.0428, longitude: 41.9734, timezone: "Europe/Moscow" },
       novokuznetsk: { label: "Nova Kuznetsk Forge", latitude: 53.7575, longitude: 87.136, timezone: "Asia/Novokuznetsk" }
     };
-    const WEATHER_FORECAST_HOURS = 36;
+    const WEATHER_FORECAST_HOURS = 24;
     const WEATHER_ROTATION_INTERVAL = 30000;
     const POLLEN_FIELDS = ["alder_pollen", "birch_pollen", "grass_pollen", "mugwort_pollen", "ragweed_pollen"];
     let activeFilter = "ALL";
@@ -1698,11 +1698,23 @@
       const precipPath = buildAreaPath(precip, width, height, 0, 100);
       const pollenPath = buildAreaPath(pollen, width, height, 0, pollenMax);
       const uvPath = buildAreaPath(uv.map((value) => Number.isFinite(value) ? value : 0), width, height, 0, uvMax);
-      const labels = weatherSeries
-        .filter((_, index) => index % 6 === 0)
+      const stepX = width / Math.max(1, weatherSeries.length - 1);
+      const hourTicks = weatherSeries
         .map((point, index) => {
-          const x = (width / Math.max(1, weatherSeries.length - 1)) * (index * 6);
-          return `<text x="${x.toFixed(1)}" y="214" text-anchor="middle" fill="${themeColor("lineBright")}" font-family="Share Tech Mono, monospace" font-size="10">${formatHour(point.time)}</text>`;
+          const x = stepX * index;
+          const isMajor = index % 3 === 0;
+          return `
+            <line x1="${x.toFixed(1)}" y1="${isMajor ? 198 : 204}" x2="${x.toFixed(1)}" y2="209" stroke="${themeColor(isMajor ? "lineBright" : "line")}" stroke-width="${isMajor ? "1.1" : "0.7"}" opacity="${isMajor ? "0.72" : "0.42"}"></line>
+          `;
+        })
+        .join("");
+      const labels = weatherSeries
+        .filter((_, index) => index % 3 === 0)
+        .map((point, labelIndex) => {
+          const index = labelIndex * 3;
+          const x = stepX * index;
+          const label = index === 0 ? "NOW" : formatHour(point.time);
+          return `<text x="${x.toFixed(1)}" y="218" text-anchor="${index === 0 ? "start" : "middle"}" fill="${themeColor("lineBright")}" font-family="Share Tech Mono, monospace" font-size="10" letter-spacing="1.2">${label}</text>`;
         })
         .join("");
 
@@ -1738,6 +1750,7 @@
         <text x="12" y="38" fill="${themeColor("danger")}" font-family="Share Tech Mono, monospace" font-size="12">RAIN THREAT 0..100%</text>
         <text x="12" y="56" fill="${themeColor("success")}" font-family="Share Tech Mono, monospace" font-size="12">${weatherMeta.pollenAvailable ? `SPORE TAINT 0..${pollenMax}` : "SPORE DATA BEYOND AUSPEX"}</text>
         <text x="12" y="74" fill="${themeColor("lineBright")}" font-family="Share Tech Mono, monospace" font-size="12">${weatherMeta.uvAvailable ? `SOLAR SCOURGE 0..${uvMax}` : "SOLAR DATA VEILED"}</text>
+        <g>${hourTicks}</g>
         <g>${labels}</g>
       `;
 
