@@ -814,7 +814,9 @@
       height: 100%;
       display: block;
       animation: phosphorGlow 8s ease-in-out infinite;
-      filter: drop-shadow(0 0 8px rgb(var(--line-bright-rgb) / 0.2));
+      filter:
+        drop-shadow(0 0 7px rgb(var(--line-bright-rgb) / 0.34))
+        drop-shadow(0 0 14px rgb(var(--accent-bright-rgb) / 0.18));
     }
 
     .chart-legend {
@@ -1418,6 +1420,7 @@
                 <div class="moon-scope" id="moon-scope" aria-label="Lunar phase scope"></div>
                 <div>
                   <div class="signal-row"><span>Calendar year</span><strong id="calendar-year">2026</strong></div>
+                  <div class="signal-row"><span>Weekday</span><strong id="weekday-name">TUE</strong></div>
                   <div class="signal-row"><span>Week / day</span><strong id="week-day-index">W18 / 125/365</strong></div>
                   <div class="signal-row"><span>Lunar rite</span><strong id="moon-phase">WAXING</strong></div>
                   <div class="signal-row"><span>Luna data</span><strong id="moon-data">8.7D / 62%</strong></div>
@@ -1427,7 +1430,7 @@
           </div>
         </div>
 
-        <div class="section-label"><span id="weather-section-title">Port Anaphius atmospheric augury</span></div>
+        <div class="section-label"><span id="weather-section-title">Atmospheric augury</span></div>
         <div class="panel" style="margin-bottom: 16px;">
           <div class="chart-legend">
             <span><span class="legend-swatch" style="color: var(--amber); background: rgb(var(--accent-bright-rgb) / 0.18);"></span>Thermal omen</span>
@@ -2182,6 +2185,7 @@
       const now = new Date();
       const moon = getMoonPhase(now);
       document.getElementById("calendar-year").textContent = now.getFullYear();
+      document.getElementById("weekday-name").textContent = now.toLocaleDateString("en-GB", { weekday: "short" }).toUpperCase();
       document.getElementById("week-day-index").textContent = `W${String(getIsoWeek(now)).padStart(2, "0")} / ${String(getDayOfYear(now)).padStart(3, "0")}/${daysInYear(now.getFullYear())}`;
       document.getElementById("moon-phase").textContent = moon.label.toUpperCase();
       document.getElementById("moon-data").textContent = `${moon.age.toFixed(1)}D / ${Math.round(moon.illumination * 100)}%`;
@@ -2194,10 +2198,9 @@
 
     function updateWeatherPanel() {
       const current = weatherSeries[0];
-      const location = currentWeatherLocation();
       const sectionTitle = document.getElementById("weather-section-title");
       const locationSelect = document.getElementById("weather-location");
-      if (sectionTitle) sectionTitle.textContent = `${location.label} atmospheric augury`;
+      if (sectionTitle) sectionTitle.textContent = "Atmospheric augury";
       if (locationSelect) locationSelect.value = currentWeatherLocationId;
       document.getElementById("weather-sky").textContent = current ? skyOmenLabel(current.weatherCode) : weatherStatusLabel(weatherMeta.status);
       document.getElementById("weather-temp").textContent = current ? `${current.temperature.toFixed(1)} C` : "-- C";
