@@ -750,6 +750,73 @@
       letter-spacing: 0.12em;
     }
 
+    .quote-panel {
+      min-height: 112px;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      align-content: stretch;
+    }
+
+    .quote-text {
+      min-height: 58px;
+      max-height: 58px;
+      display: grid;
+      align-items: center;
+      justify-items: center;
+      overflow: hidden;
+      color: var(--text);
+      font-size: 0.86rem;
+      line-height: 1.32;
+      text-align: center;
+      text-shadow: 0 0 6px rgb(var(--accent-bright-rgb) / 0.12);
+    }
+
+    .quote-source {
+      min-height: 18px;
+      color: var(--text-faint);
+      font-family: var(--font-display);
+      font-size: 0.5rem;
+      letter-spacing: 0.13em;
+      line-height: 1.28;
+      text-transform: uppercase;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-shadow: 0 0 5px rgb(var(--accent-bright-rgb) / 0.08);
+    }
+
+    .chronometry-grid {
+      display: grid;
+      grid-template-columns: 92px minmax(0, 1fr);
+      gap: 8px;
+      align-items: center;
+    }
+
+    .chronometry-grid .signal-row {
+      gap: 8px;
+      font-size: 0.8rem;
+      line-height: 1.25;
+    }
+
+    .chronometry-grid .signal-row strong {
+      white-space: nowrap;
+    }
+
+    .moon-scope {
+      position: relative;
+      width: 92px;
+      height: 92px;
+      display: grid;
+      place-items: center;
+    }
+
+    .moon-scope svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+      animation: phosphorGlow 8s ease-in-out infinite;
+      filter: drop-shadow(0 0 8px rgb(var(--line-bright-rgb) / 0.2));
+    }
+
     .chart-legend {
       display: flex;
       gap: 14px;
@@ -1340,17 +1407,22 @@
             <div class="gauges" id="gauges"></div>
           </div>
           <div class="panel metric-side">
-            <div class="signal-box">
+            <div class="signal-box quote-panel">
               <div class="signal-title">Litany of status</div>
-              <div class="signal-row"><span>Current cycle</span><strong id="cycle-readout">M41.999.817</strong></div>
-              <div class="signal-row"><span>Noosphere link</span><strong id="link-readout">STABLE</strong></div>
-              <div class="signal-row"><span>Data sanctity</span><strong id="sanctity-readout">98.7%</strong></div>
+              <div class="quote-text" id="litany-quote">Data is holy; ignorance is heresy.</div>
+              <div class="quote-source" id="litany-source">Cogitator cache</div>
             </div>
             <div class="signal-box">
-              <div class="signal-title">Metric harmonics</div>
-              <div class="signal-row"><span>Average load</span><strong id="average-load">69%</strong></div>
-              <div class="signal-row"><span>Flux delta</span><strong id="flux-delta">+4.3</strong></div>
-              <div class="signal-row"><span>Alert state</span><strong id="alert-state">VIGILANT</strong></div>
+              <div class="signal-title">Chrono harmonics</div>
+              <div class="chronometry-grid">
+                <div class="moon-scope" id="moon-scope" aria-label="Lunar phase scope"></div>
+                <div>
+                  <div class="signal-row"><span>Calendar year</span><strong id="calendar-year">2026</strong></div>
+                  <div class="signal-row"><span>Week / day</span><strong id="week-day-index">W18 / 125/365</strong></div>
+                  <div class="signal-row"><span>Lunar rite</span><strong id="moon-phase">WAXING</strong></div>
+                  <div class="signal-row"><span>Luna data</span><strong id="moon-data">8.7D / 62%</strong></div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -1441,6 +1513,7 @@
     </footer>
   </div>
 
+  <script src="cleaned_quotes.js"></script>
   <script>
     const circumference = 2 * Math.PI * 40;
     const themes = {
@@ -1565,6 +1638,7 @@
     let weatherRotationTimer = null;
     let sweepTimer = null;
     let currentTheme = "mechanicus";
+    let litanyQuoteIndex = -1;
 
     function clamp(value, min, max) {
       return Math.max(min, Math.min(max, value));
@@ -2001,16 +2075,121 @@
       return date.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
     }
 
+    function quoteCache() {
+      const quotes = Array.isArray(window.COGITATOR_QUOTES) ? window.COGITATOR_QUOTES : [];
+      return quotes.filter((quote) => quote?.text && quote.text.length <= 210);
+    }
+
+    function updateLitanyQuote() {
+      const quotes = quoteCache();
+      const quoteNode = document.getElementById("litany-quote");
+      const sourceNode = document.getElementById("litany-source");
+      if (!quoteNode || !sourceNode) return;
+
+      if (!quotes.length) {
+        quoteNode.textContent = "Data is holy; ignorance is heresy.";
+        sourceNode.textContent = "Cogitator cache";
+        return;
+      }
+
+      litanyQuoteIndex = (litanyQuoteIndex + 1 + Math.floor(Math.random() * Math.max(1, quotes.length - 1))) % quotes.length;
+      const quote = quotes[litanyQuoteIndex];
+      quoteNode.textContent = quote.text;
+      sourceNode.textContent = quote.speaker || quote.source || quote.type || "Unattributed";
+    }
+
+    function getDayOfYear(date) {
+      const start = new Date(date.getFullYear(), 0, 0);
+      const offsetCorrection = (start.getTimezoneOffset() - date.getTimezoneOffset()) * 60000;
+      return Math.floor((date - start + offsetCorrection) / 86400000);
+    }
+
+    function getIsoWeek(date) {
+      const target = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+      const dayNumber = target.getUTCDay() || 7;
+      target.setUTCDate(target.getUTCDate() + 4 - dayNumber);
+      const yearStart = new Date(Date.UTC(target.getUTCFullYear(), 0, 1));
+      return Math.ceil((((target - yearStart) / 86400000) + 1) / 7);
+    }
+
+    function daysInYear(year) {
+      return new Date(year, 1, 29).getMonth() === 1 ? 366 : 365;
+    }
+
+    function getMoonPhase(date) {
+      const synodicMonth = 29.530588853;
+      const knownNewMoon = Date.UTC(2000, 0, 6, 18, 14);
+      const age = ((((date.getTime() - knownNewMoon) / 86400000) % synodicMonth) + synodicMonth) % synodicMonth;
+      const index = Math.floor((age / synodicMonth) * 8 + 0.5) % 8;
+      const illumination = (1 - Math.cos((2 * Math.PI * age) / synodicMonth)) / 2;
+      const phase = [
+        { label: "New", light: 0, side: 0, code: "NOV" },
+        { label: "Waxing cres.", light: 0.24, side: 1, code: "WXC" },
+        { label: "First qtr.", light: 0.5, side: 1, code: "I-Q" },
+        { label: "Waxing gib.", light: 0.74, side: 1, code: "WXG" },
+        { label: "Full", light: 1, side: 0, code: "PLN" },
+        { label: "Waning gib.", light: 0.74, side: -1, code: "WNG" },
+        { label: "Last qtr.", light: 0.5, side: -1, code: "III" },
+        { label: "Waning cres.", light: 0.24, side: -1, code: "WNC" }
+      ][index];
+      return {
+        ...phase,
+        age,
+        illumination,
+        cycle: age / synodicMonth
+      };
+    }
+
+    function buildMoonScopeSvg(phase) {
+      const bright = themeColor("accentBright");
+      const line = themeColor("lineBright");
+      const amber = themeColor("accent");
+      const danger = themeColor("danger");
+      const radius = 22;
+      const litWidth = Math.max(0, Math.min(radius * 2, radius * 2 * phase.illumination));
+      const litX = phase.side < 0 ? 42 - radius : 42 + radius - litWidth;
+      const litOpacity = phase.illumination <= 0.02 ? 0.1 : phase.illumination >= 0.98 ? 0.96 : 0.84;
+      const pointerAngle = phase.cycle * 360 - 90;
+      return `
+        <svg viewBox="0 0 84 84" role="img" aria-label="${phase.label} lunar scope">
+          <defs>
+            <clipPath id="moon-disk-clip"><circle cx="42" cy="42" r="${radius}"></circle></clipPath>
+            <pattern id="moon-scan-lines" width="4" height="4" patternUnits="userSpaceOnUse">
+              <path d="M0 1 H4" stroke="${line}" stroke-width="0.38" opacity="0.38"></path>
+            </pattern>
+          </defs>
+          <circle cx="42" cy="42" r="38" fill="none" stroke="${line}" stroke-width="0.7" opacity="0.42"></circle>
+          <circle cx="42" cy="42" r="31" fill="none" stroke="${bright}" stroke-width="0.55" stroke-dasharray="2 5" opacity="0.56"></circle>
+          <path d="M42 4 V13 M42 71 V80 M4 42 H13 M71 42 H80" stroke="${amber}" stroke-width="0.8" opacity="0.7"></path>
+          <path d="M16 16 L22 22 M68 16 L62 22 M16 68 L22 62 M68 68 L62 62" stroke="${danger}" stroke-width="0.65" opacity="0.52"></path>
+          <g clip-path="url(#moon-disk-clip)">
+            <circle cx="42" cy="42" r="${radius}" fill="${line}" opacity="0.12"></circle>
+            <rect x="${litX}" y="${42 - radius}" width="${litWidth}" height="${radius * 2}" fill="${bright}" opacity="${litOpacity}"></rect>
+            <rect x="${42 - radius}" y="${42 - radius}" width="${radius * 2}" height="${radius * 2}" fill="url(#moon-scan-lines)" opacity="0.62"></rect>
+            <path d="M24 34 C32 37 34 50 25 55 M53 23 C48 33 52 48 61 54 M35 24 C41 28 41 34 35 38" fill="none" stroke="${amber}" stroke-width="0.68" opacity="0.38"></path>
+          </g>
+          <circle cx="42" cy="42" r="${radius}" fill="none" stroke="${bright}" stroke-width="1" opacity="0.88"></circle>
+          <path d="M16 42 H21 M63 42 H68 M42 16 V21 M42 63 V68" stroke="${bright}" stroke-width="0.75" opacity="0.68"></path>
+          <g transform="rotate(${pointerAngle} 42 42)">
+            <path d="M42 7 L45 15 L42 13 L39 15 Z" fill="${bright}" opacity="0.94"></path>
+            <path d="M42 16 V24" stroke="${bright}" stroke-width="0.8" opacity="0.72"></path>
+          </g>
+        </svg>
+      `;
+    }
+
+    function updateChronometryPanel() {
+      const now = new Date();
+      const moon = getMoonPhase(now);
+      document.getElementById("calendar-year").textContent = now.getFullYear();
+      document.getElementById("week-day-index").textContent = `W${String(getIsoWeek(now)).padStart(2, "0")} / ${String(getDayOfYear(now)).padStart(3, "0")}/${daysInYear(now.getFullYear())}`;
+      document.getElementById("moon-phase").textContent = moon.label.toUpperCase();
+      document.getElementById("moon-data").textContent = `${moon.age.toFixed(1)}D / ${Math.round(moon.illumination * 100)}%`;
+      document.getElementById("moon-scope").innerHTML = buildMoonScopeSvg(moon);
+    }
+
     function updateSignalPanel() {
-      const average = Math.round(gaugeData.reduce((sum, item) => sum + item.value, 0) / gaugeData.length);
-      const maxGauge = Math.max(...gaugeData.map((item) => item.value));
-      const status = maxGauge >= 90 ? "Vigilant" : average >= 65 ? "Nominal" : "Attentive";
-      document.getElementById("average-load").textContent = `${average}%`;
-      document.getElementById("flux-delta").textContent = calculateSystemFluxDelta();
-      document.getElementById("alert-state").textContent = status.toUpperCase();
-      document.getElementById("sanctity-readout").textContent = `${(96 + Math.random() * 3.2).toFixed(1)}%`;
-      document.getElementById("cycle-readout").textContent = `M41.999.${String(810 + Math.floor(Math.random() * 30)).padStart(3, "0")}`;
-      document.getElementById("link-readout").textContent = average >= 78 ? "STRESSED" : "STABLE";
+      updateChronometryPanel();
     }
 
     function updateWeatherPanel() {
@@ -2186,6 +2365,7 @@
       renderGauges();
       renderSystems();
       renderChart();
+      updateChronometryPanel();
     }
 
     function triggerSweep() {
@@ -2252,12 +2432,14 @@
     applyTheme(currentTheme);
     renderTasks();
     updateSignalPanel();
+    updateLitanyQuote();
     loadWeatherTelemetry();
     updateClock();
     syncFilterButtons();
 
     setInterval(updateClock, 1000);
     setInterval(advanceMetrics, 2400);
+    setInterval(updateLitanyQuote, 18000);
     setInterval(loadWeatherTelemetry, 30 * 60 * 1000);
     scheduleWeatherRotation();
     scheduleSweep();
